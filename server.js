@@ -7,7 +7,7 @@ const crypto = require('crypto');
 const { chromium } = require('playwright');
 
 // ====== الإعدادات ======
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 const SECRET = process.env.BOT_SECRET || 'غيّر-الكلمة-دي';
 const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || '';
 const API_SECRET = process.env.API_SECRET || '';
