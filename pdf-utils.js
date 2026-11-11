@@ -105,7 +105,7 @@ async function buildPdfFile(imageFiles, targetPath, title) {
   const storyPages = Array.isArray(imageFiles.storyPages) ? imageFiles.storyPages : [];
   const files = [...imageFiles].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
   const browser = await chromium.launch({
-    channel: 'chrome',
+    
     headless: true,
     args: ['--disable-gpu']
   });

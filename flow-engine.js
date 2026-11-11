@@ -898,7 +898,7 @@ async function generateStoryFlow({
   storyFiles.storyPages = pages;
 
   const browser = await chromium.launch({
-    channel: 'chrome',
+    
     headless: true,
     ignoreDefaultArgs: ['--enable-automation'],
     args: ['--disable-blink-features=AutomationControlled']

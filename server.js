@@ -623,7 +623,7 @@ async function generateStoryOnce({ meta, photoPath }) {
   }
 
   const browser = await chromium.launch({
-    channel: 'chrome',
+    
     headless: process.env.HEADLESS !== '0',
     ignoreDefaultArgs: ['--enable-automation'],
     args: ['--disable-blink-features=AutomationControlled']
