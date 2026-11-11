@@ -631,7 +631,7 @@ async function generateStoryOnce({ meta, photoPath }) {
 
   try {
     const context = await browser.newContext({
-      storageState: 'auth.json',
+      storageState: process.env.AUTH_STATE_PATH || 'auth.json',
       locale: 'ar-EG',
       viewport: {
         width: 1280,

@@ -905,7 +905,7 @@ async function generateStoryFlow({
   });
 
   const context = await browser.newContext({
-    storageState: 'auth.json',
+    storageState: process.env.AUTH_STATE_PATH || 'auth.json',
     locale: 'en-GB',
     viewport: {
       width: 1280,
