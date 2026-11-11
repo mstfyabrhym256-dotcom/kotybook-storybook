@@ -1,0 +1,14 @@
+node_modules/
+auth.json
+config.json
+queue.json
+out/
+tmp/
+*.backup*
+flow-info.json
+flow-run.json
+proj-info.json
+story-test-*.json
+test.jpg
+error.png
+.env
