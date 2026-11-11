@@ -1,0 +1,30 @@
+
+name: Kotybook Server Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Get project files
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Test Playwright and Chromium
+        run: |
+          node -e "const { chromium } = require('playwright'); (async () => { const browser = await chromium.launch({ headless: true }); const page = await browser.newPage(); await page.goto('https://example.com'); console.log('KOTYBOOK CHROMIUM TEST SUCCESS'); console.log(await page.title()); await browser.close(); })().catch(e => { console.error(e); process.exit(1); });"
