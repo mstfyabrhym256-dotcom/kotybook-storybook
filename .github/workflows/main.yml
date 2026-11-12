@@ -36,6 +36,6 @@ jobs:
           API_SECRET: ${{ secrets.API_SECRET }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          AUTH_STATE_JSON: ${{ secrets.AUTH_STATE_JSON }}
+          AUTH_STATE_JSON: ${{ secrets.AUTH_JSON }}
           REATTACH_EACH: '1'
         run: node worker.js
