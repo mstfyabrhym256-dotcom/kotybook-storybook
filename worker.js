@@ -12,6 +12,8 @@ function required(name, value) {
   if (!value) throw new Error(`GitHub Secret/Variable ناقص: ${name}`);
 }
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 async function callAppsScript(action, payload = {}) {
   const response = await fetch(APPS_SCRIPT_URL, {
     method: 'POST',
@@ -32,6 +34,35 @@ async function callAppsScript(action, payload = {}) {
     throw new Error(data.error || data.message || `Apps Script HTTP ${response.status}`);
   }
   return data;
+}
+
+async function generateFlowWithRetries(options, attempts = 2) {
+  let lastError;
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      console.log(`تشغيل Google Flow بالكامل - المحاولة ${attempt}/${attempts}`);
+      return await generateStoryFlow(options);
+    } catch (error) {
+      lastError = error;
+      const message = String(error.message || error);
+
+      console.error(`فشل تشغيل Flow بالكامل (المحاولة ${attempt}/${attempts}): ${message}`);
+
+      // أعد التشغيل الكامل عند فشل ظهور صورة من Flow بعد محاولتي الصفحة.
+      // لا نكرر أخطاء الإعدادات أو البيانات أو تسجيل الدخول التي لن يحلها التكرار.
+      const retryable = message.includes('الصورة ماظهرتش في 4 دقايق');
+
+      if (!retryable || attempt === attempts) {
+        throw error;
+      }
+
+      console.log('سيتم إعادة تشغيل مشروع Flow من البداية مع الاحتفاظ بنفس نصوص القصة خلال 10 ثوانٍ...');
+      await sleep(10000);
+    }
+  }
+
+  throw lastError || new Error('فشل تشغيل Google Flow لسبب غير معروف.');
 }
 
 async function uploadPdf(code, pdfPath, title) {
@@ -111,12 +142,12 @@ async function main() {
 
     console.log('2) تشغيل محرك إنشاء القصة عبر Google Flow...');
     const meta = { ...job.meta };
-    const imageFiles = await generateStoryFlow({
+    const imageFiles = await generateFlowWithRetries({
       meta,
       photoPath,
       outDir: jobDir,
       limit: 10
-    });
+    }, 2);
 
     if (!Array.isArray(imageFiles) || imageFiles.length !== 10) {
       throw new Error(`المحرك أنشأ ${imageFiles?.length || 0} صورة بدل 10 صفحات.`);
