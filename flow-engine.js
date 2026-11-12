@@ -179,10 +179,12 @@ async function findTiles(page) {
 }
 
 async function openFlowSettings(page) {
+  // استخدم العناصر الظاهرة فقط؛ قد يحتوي Flow على أزرار إعدادات مخفية
+  // قبل الزر الفعلي، لذلك لا نستخدم first() قبل فلترة :visible.
   const candidates = [
-    page.locator('button[aria-label="مشغِّل الإعدادات"]').first(),
-    page.locator('button.settings-trigger-button').first(),
-    page.locator('button[aria-label*="settings" i]').first()
+    page.locator('button[aria-label="مشغِّل الإعدادات"]:visible').first(),
+    page.locator('button.settings-trigger-button:visible').first(),
+    page.locator('button[aria-label*="settings" i]:visible').first()
   ];
 
   let lastError;
@@ -192,10 +194,10 @@ async function openFlowSettings(page) {
       try {
         if (!(await button.count())) continue;
 
-        await button.waitFor({ state: 'visible', timeout: 8000 });
+        await button.waitFor({ state: 'visible', timeout: 5000 });
         await button.scrollIntoViewIfNeeded().catch(() => {});
         await sleep(500);
-        await button.click({ timeout: 12000, force: true });
+        await button.click({ timeout: 12000 });
 
         const menuOpened = await page.waitForFunction(() => {
           const visible = (el) => {
@@ -225,7 +227,9 @@ async function openFlowSettings(page) {
         const anyMenu = await page.locator('[role="menu"], [role="dialog"], .cdk-overlay-pane')
           .evaluateAll(els => els.some(el => {
             const r = el.getBoundingClientRect();
-            return r.width > 0 && r.height > 0;
+            const st = getComputedStyle(el);
+            return r.width > 0 && r.height > 0 &&
+              st.visibility !== 'hidden' && st.display !== 'none';
           }))
           .catch(() => false);
 
@@ -248,7 +252,7 @@ async function openFlowSettings(page) {
 
   throw new Error(
     'تعذر فتح إعدادات Flow بعد 3 محاولات: ' +
-    (lastError?.message || 'الزر غير متاح')
+    (lastError?.message || 'زر الإعدادات الظاهر غير متاح')
   );
 }
 async function openAddMenu(page) {
