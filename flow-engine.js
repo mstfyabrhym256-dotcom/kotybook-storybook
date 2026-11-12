@@ -878,11 +878,15 @@ async function generateStoryFlow({
   // تأليف القصة قبل فتح Flow حتى لا ننشئ مشروعًا أو نرفع الصورة إذا تعذّر التأليف.
   let pages;
 
-  if (meta.pages) {
+  // احتفظ بنفس القصة عند إعادة تشغيل Flow بالكامل بعد تعثر مؤقت.
+  // meta.storyPages تُملأ بعد أول تأليف، وتُستخدم في المحاولة التالية بدل إعادة تأليف القصة.
+  const savedPages = meta.pages || meta.storyPages;
+
+  if (savedPages) {
     try {
-      pages = typeof meta.pages === 'string'
-        ? JSON.parse(meta.pages)
-        : meta.pages;
+      pages = typeof savedPages === 'string'
+        ? JSON.parse(savedPages)
+        : savedPages;
 
     } catch (_) {
       throw new Error('بيانات الصفحات المرسلة ليست JSON صالحًا.');
