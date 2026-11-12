@@ -82,36 +82,49 @@ function storyTitle(name) {
 // برومبت توليد الصور في Flow
 // ======================================================
 
-function buildPrompt(pg, name, title) {
-  const base = [
-    'Create one complete, professionally art-directed page of a premium personalized illustrated storybook, portrait 3:4 composition.',
-    'The output must be the FINAL finished page artwork. The illustration and all required Arabic typography must be rendered together inside this single image. Do not leave any text for later editing, typesetting, compositing or PDF processing.',
-    'Use the attached reference photo as the identity source for the main person. Preserve the same recognizable face, facial geometry, skin tone and visible identity details across all ten pages. Do not redesign or reinterpret the person.',
-    'Create a beautiful, emotionally engaging, richly detailed storybook scene with professional art direction, polished lighting, thoughtful color harmony, strong composition and clear visual storytelling.',
-    'Use sophisticated premium children-book design: carefully composed illustration, refined decorative details, balanced negative space, elegant color palette and intentional typography placement. The page must look designed by a professional book designer, not like a plain photo with text pasted on.',
-    'Arabic must be written correctly from right to left, with connected letters, correct spelling, correct dots and punctuation. Use distinctive elegant Arabic display typography for headings and a highly legible refined Arabic book font for story text. Maintain excellent contrast, comfortable spacing, balanced line breaks and clear hierarchy.',
-    'Render only the exact Arabic text explicitly supplied for this page. Do not translate it, paraphrase it, omit words, invent words, add random glyphs, add English text, or add extra captions, labels, page numbers, logos or watermarks.',
-    'Keep every requested word fully inside the page with generous safe margins. Do not crop the title or story text. No split screen, collage, photographed book mockup, outer border or perspective mockup.'
-  ].join(' ');
+function buildPrompt(pg, name, title, dream) {
+  const childName = String(name || '').trim();
+  const childDream = String(dream || '').trim();
+  const themeColors = 'soft navy blue, sky blue, and warm harmonious tones';
 
   if (pg.cover) {
-    const coverTitle = String(title || 'رحلة نحو الحلم');
-    const coverName = String(name || '');
-    return base +
-      ' This is the FRONT COVER. Create a memorable premium storybook cover with expressive, custom-looking Arabic TYPOGRAPHY artistically integrated with the illustration. Display this exact main title, letter-for-letter: «' +
-      coverTitle +
-      '». Also display this exact smaller Arabic line: «حكاية ' +
-      coverName +
-      '». Make the title the visual centerpiece: distinctive Arabic lettering, beautiful typographic composition, elegant hierarchy, tasteful dimensional treatment and harmonious integration with the scene. The title must be large, readable and spelled exactly as supplied. Do not add any other words.';
+    const prompt = `Subject & Face Preservation:
+Keep the exact real-life child from the reference image without any changes to their face, facial features, skin texture, hair, or natural expression. The child's face and body must remain 100% real-life photography—do NOT apply any cartoon, 3D, or illustration filter to the person.
+
+Clothing & Pose:
+The child is wearing a realistic, natural-fabric child's outfit for a ${childDream} (real clothing texture, natural folds, realistic studio lighting). The child is naturally holding a real prop related to ${childDream} and smiling directly at the camera, positioned in the lower-center foreground.
+
+Background Environment:
+Replace the background with a clean, well-organized, cute 3D stylized toy-like room representing the world of ${childDream}, using soft ${themeColors} tones. Keep the background tidy and uncluttered with only 1 or 2 cute thematic elements in logical places, creating a smooth, natural blend between the real-life photographed child and the colorful storybook background.
+
+Arabic Cover Typography:
+Design this as a flat, vertical (3:4) full-bleed children's book cover with no borders or frames. At the top center, render large, glossy, 3D playful Arabic bubble text with glowing outlines that reads: "${childName} ${String(title || 'رحلة نحو الحلم')}". Directly below it, in smaller matching Arabic bubble text, render: "حكاية ${childName}". Add a tiny cute thematic icon resting on the corner of the title text.
+
+Brand Watermark:
+In the very bottom-left corner, render a tiny, subtle, clean white sans-serif watermark text with a faint drop shadow that reads: "kotybook 01276626592". Keep it small and discreet so it blends naturally into the bottom edge.`;
+    return prompt;
   }
 
-  const exactStoryText = String(pg.text || '').trim();
-  return base +
-    ' This is an INTERIOR STORY PAGE. Depict this exact story event: ' +
-    String(pg.scene || '') +
-    '. The following is the complete story text and MUST appear visibly inside the artwork, exactly as written in Arabic: «' +
-    exactStoryText +
-    '». Design a beautiful, well-integrated story-text area as part of the page composition. Use refined Arabic book typography, readable size, comfortable line spacing, elegant alignment and a tasteful decorative treatment that matches the illustration. The illustration should remain prominent while the complete story text stays easy to read. Do not change even one word.';
+  const scene = String(pg.scene || '').trim();
+  const storyText = String(pg.text || '').trim();
+
+  return `Visual Style & Face Preservation:
+A flat, vertical (3:4) full-bleed children's storybook interior page. Keep the exact real-life child from the reference image, maintaining their 100% natural, photorealistic, lifelike facial features, skin texture, and original hairstyle completely preserved with 100% real-life photography (absolutely NO cartoon, 3D, or illustration filters on the person).
+
+Subject, Outfit & Action:
+The child is wearing a realistic, natural-fabric child's outfit suitable for ${childDream} (with real fabric folds and natural studio lighting, NOT cartoonish).
+In a natural, dynamic posture, the child is ${scene}, looking toward the main activity related to ${childDream}.
+
+Environment (Clean 3D Stylized World):
+The child is seamlessly integrated into a vibrant, clean, and well-organized 3D toy-like Pixar-style environment representing ${scene} in harmonious ${themeColors} tones. Keep the background tidy and uncluttered with cinematic depth-of-field blur in the back so the child and scene stand out naturally.
+
+Text Integration & Styling (Borderless & Natural):
+Seamlessly and naturally integrated ONLY directly behind the letterings of the text—absolutely NO borders, boxes, geometric shapes, or rectangular edges of any kind are visible. Render high-contrast, clean Arabic text with an extremely soft, subtle, borderless fading defocus blur (feathered natural defocus) acting only as a faint optical shadow directly behind the letters to ensure perfect legibility against the background.
+Place the Arabic story text naturally in an open, uncluttered area of the scene (an open area away from the main subject):
+"${storyText}"
+
+Brand Watermark & Format:
+In the very bottom-left corner, render a tiny, subtle, clean white sans-serif watermark text with a faint drop shadow that reads: "kotybook 01276626592". Flat full-bleed interior story page with natural, cinematic lighting and no artificial frames, borders, or mockup perspectives.`;
 }
 
 // ======================================================
@@ -1067,7 +1080,8 @@ async function generateStoryFlow({
       const prompt = buildPrompt(
         pages[i],
         meta.name,
-        meta.title
+        meta.title,
+        meta.dream
       );
 
       let done = false;
