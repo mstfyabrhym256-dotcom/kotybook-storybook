@@ -1,3 +1,4 @@
+```yaml
 name: Kotybook Storybook Generator
 
 on:
@@ -39,3 +40,15 @@ jobs:
           AUTH_STATE_JSON: ${{ secrets.AUTH_JSON }}
           REATTACH_EACH: '1'
         run: node worker.js
+
+      - name: Upload Flow debug screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flow-debug-screenshot
+          path: |
+            dbg-settings-open-failed.png
+            **/dbg-settings-open-failed.png
+          if-no-files-found: warn
+          retention-days: 3
+```
