@@ -22,9 +22,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Chromium
-        run: npx playwright install chromium
+      - name: Install Google Chrome
+        run: npx playwright install --with-deps chrome
 
-      - name: Test Playwright and Chromium
+      - name: Test Playwright and Chrome
         run: |
-          node -e "const { chromium } = require('playwright'); (async () => { const browser = await chromium.launch({ headless: true }); const page = await browser.newPage(); await page.goto('https://example.com'); console.log('KOTYBOOK CHROMIUM TEST SUCCESS'); console.log(await page.title()); await browser.close(); })().catch(e => { console.error(e); process.exit(1); });"
+          node -e "const { chromium } = require('playwright'); (async () => { const browser = await chromium.launch({ channel: 'chrome', headless: true }); const page = await browser.newPage(); await page.goto('https://example.com'); console.log('KOTYBOOK CHROME TEST SUCCESS'); console.log(await page.title()); await browser.close(); })().catch(e => { console.error(e); process.exit(1); });"
