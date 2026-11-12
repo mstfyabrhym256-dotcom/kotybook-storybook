@@ -1,4 +1,3 @@
-
 // محرك Flow: يفتح مشروع جديد، يرفع صورة الطفل، يولّد صورة لكل صفحة (3:4)، وينزّلها
 
 const { chromium } = require('playwright');
@@ -80,27 +79,40 @@ function storyTitle(name) {
 }
 
 // ======================================================
-// برومبت توليد الصور في Flow - هوية ثابتة وتصوير سينمائي
+// برومبت توليد الصور في Flow
 // ======================================================
-// برومبت توليد الصور في Flow - هوية ثابتة وتصوير سينمائي
-// ======================================================
+
 function buildPrompt(pg, name, title) {
   const base = [
-    'Create an extremely photorealistic live-action cinematic photograph for a premium personalized storybook, portrait 3:4 composition.',
-    'It must look like a real frame captured by a high-end full-frame cinema camera: authentic skin pores, fine facial detail, natural hair strands, realistic fabric texture, physically believable lighting, accurate anatomy, natural hands, rich environmental detail, subtle film grain, controlled highlights and refined cinematic color grading.',
-    'IDENTITY LOCK IS THE HIGHEST PRIORITY. Use the attached reference photo as the identity source for the main person. Preserve the exact recognizable face and facial geometry, eye spacing, nose, lips, jawline, cheeks, skin tone and distinctive identity details. The same real person must be unmistakably recognizable in every page.',
-    'Do not beautify, redesign, stylize, age up, age down, infantilize or reinterpret the person. Do not assume or state an age. Never invent facial, hair, eye or body characteristics that cannot be seen in the reference photo.',
-    'Use the reference photo for identity only. Do not copy its clothes, pose, expression, camera angle, lighting or background. Clothing, gesture, expression, posture and activity may change naturally to fit each story event while the face and identity remain consistent.',
-    'Create a richly layered believable environment with meaningful foreground, midground and background details related to the exact scene. Use realistic materials, atmospheric depth, motivated practical lights and a clear visual focal point. Every prop must support the story, not look randomly decorative.',
-    'Use a distinct cinematic composition for each event: vary shot size, camera height, lens perspective and subject placement while keeping the same person. The pages should feel like connected frames from one high-budget live-action film.',
-    'No cartoon, illustration, anime, painting, watercolor, comic-book look, toy-like appearance, plastic skin, artificial 3D render, exaggerated proportions, collage, split screen or poster layout.',
-    'Absolutely NO text, letters, numbers, typography, captions, logos, watermarks or borders anywhere in the photograph.',
-    'Keep the main face and important action in the upper 70 percent. Keep the lower 27 percent visually calm and relatively uncluttered for a separate printed story panel. Do not draw any panel or frame.'
+    'Create one complete, professionally art-directed page of a premium personalized illustrated storybook, portrait 3:4 composition.',
+    'The output must be the FINAL finished page artwork. The illustration and all required Arabic typography must be rendered together inside this single image. Do not leave any text for later editing, typesetting, compositing or PDF processing.',
+    'Use the attached reference photo as the identity source for the main person. Preserve the same recognizable face, facial geometry, skin tone and visible identity details across all ten pages. Do not redesign or reinterpret the person.',
+    'Create a beautiful, emotionally engaging, richly detailed storybook scene with professional art direction, polished lighting, thoughtful color harmony, strong composition and clear visual storytelling.',
+    'Use sophisticated premium children-book design: carefully composed illustration, refined decorative details, balanced negative space, elegant color palette and intentional typography placement. The page must look designed by a professional book designer, not like a plain photo with text pasted on.',
+    'Arabic must be written correctly from right to left, with connected letters, correct spelling, correct dots and punctuation. Use distinctive elegant Arabic display typography for headings and a highly legible refined Arabic book font for story text. Maintain excellent contrast, comfortable spacing, balanced line breaks and clear hierarchy.',
+    'Render only the exact Arabic text explicitly supplied for this page. Do not translate it, paraphrase it, omit words, invent words, add random glyphs, add English text, or add extra captions, labels, page numbers, logos or watermarks.',
+    'Keep every requested word fully inside the page with generous safe margins. Do not crop the title or story text. No split screen, collage, photographed book mockup, outer border or perspective mockup.'
   ].join(' ');
-  if (pg.cover) return base + ' This is the cinematic front-cover photograph. Create a memorable, emotionally engaging hero composition that symbolizes the person’s dream. Leave tasteful uncluttered negative space near the upper area for a title that will be typeset later. No text of any kind.';
-  return base + ' Depict this exact story event naturally and specifically: ' + String(pg.scene || '') + ' Show a clear meaningful action, authentic emotion and several carefully chosen environmental details. Keep visual continuity with the same person from the reference image, but do not repeat the same pose or camera composition.';
-}
 
+  if (pg.cover) {
+    const coverTitle = String(title || 'رحلة نحو الحلم');
+    const coverName = String(name || '');
+    return base +
+      ' This is the FRONT COVER. Create a memorable premium storybook cover with expressive, custom-looking Arabic TYPOGRAPHY artistically integrated with the illustration. Display this exact main title, letter-for-letter: «' +
+      coverTitle +
+      '». Also display this exact smaller Arabic line: «حكاية ' +
+      coverName +
+      '». Make the title the visual centerpiece: distinctive Arabic lettering, beautiful typographic composition, elegant hierarchy, tasteful dimensional treatment and harmonious integration with the scene. The title must be large, readable and spelled exactly as supplied. Do not add any other words.';
+  }
+
+  const exactStoryText = String(pg.text || '').trim();
+  return base +
+    ' This is an INTERIOR STORY PAGE. Depict this exact story event: ' +
+    String(pg.scene || '') +
+    '. The following is the complete story text and MUST appear visibly inside the artwork, exactly as written in Arabic: «' +
+    exactStoryText +
+    '». Design a beautiful, well-integrated story-text area as part of the page composition. Use refined Arabic book typography, readable size, comfortable line spacing, elegant alignment and a tasteful decorative treatment that matches the illustration. The illustration should remain prominent while the complete story text stays easy to read. Do not change even one word.';
+}
 
 // ======================================================
 // أدوات الصفحة
@@ -226,7 +238,6 @@ async function openFlowSettings(page) {
     (lastError?.message || 'الزر غير متاح')
   );
 }
-
 async function openAddMenu(page) {
   for (let a = 1; a <= 3; a++) {
     try {
@@ -361,7 +372,7 @@ async function reattachRef(page) {
 // تحميل الصور مع الحفاظ على الجودة الأصلية
 // ======================================================
 
-async function download(context, src, file) {
+async function download(context, src, fileBase) {
   const sharp = require('sharp');
 
   const r = await context.request.get(src, {
@@ -382,13 +393,23 @@ async function download(context, src, file) {
     ((buf.length / 1024) | 0) + 'KB'
   );
 
+  // Keep original JPEG/PNG bytes untouched. Convert other formats to
+  // lossless PNG because pdf-utils.js embeds JPG and PNG directly.
   if (info.format === 'jpeg' || info.format === 'jpg') {
-    fs.writeFileSync(file, buf);
-  } else {
-    await sharp(buf)
-      .jpeg({ quality: 100, chromaSubsampling: '4:4:4' })
-      .toFile(file);
+    const target = fileBase + '.jpg';
+    fs.writeFileSync(target, buf);
+    return target;
   }
+
+  if (info.format === 'png') {
+    const target = fileBase + '.png';
+    fs.writeFileSync(target, buf);
+    return target;
+  }
+
+  const target = fileBase + '.png';
+  await sharp(buf).png().toFile(target);
+  return target;
 }
 
 // ======================================================
@@ -421,27 +442,11 @@ function getGeminiSettings() {
   return { apiKey, model };
 }
 
-function getOpenRouterSettings() {
-  const cfg = readConfig();
-
-  const apiKey =
-    process.env.OPENROUTER_API_KEY ||
-    cfg.OPENROUTER_API_KEY ||
-    '';
-
-  const model =
-    process.env.OPENROUTER_MODEL ||
-    cfg.OPENROUTER_MODEL ||
-    'openrouter/free';
-
-  return { apiKey, model };
-}
 
 // ======================================================
 // برومبت كتابة القصة - مناسب لأي عمر دون افتراض أنه طفل
 // ======================================================
-// برومبت كتابة القصة - مناسب لأي عمر دون افتراض أنه طفل
-// ======================================================
+
 function storyPrompt(meta) {
   return `أنت مؤلف محترف لقصص مصورة شخصية ذات جودة أدبية وسينمائية عالية. اكتب قصة أصلية مترابطة يكون بطلها الشخص صاحب الصورة المرجعية.
 
@@ -480,7 +485,6 @@ ${meta.dream}
 
 يجب أن تحتوي pages على 10 عناصر بالضبط. راجع ترابط الأحداث وعدد كلمات كل صفحة قبل إخراج JSON.`;
 }
-
 
 // ======================================================
 // استخراج JSON والتحقق من القصة
@@ -721,134 +725,116 @@ async function requestGemini(meta) {
 }
 
 // ======================================================
-// OpenRouter محفوظ كخيار يدوي فقط، وليس بديلًا تلقائيًا
+// Groq (أساسي) + Gemini (احتياطي)
 // ======================================================
 
-async function requestOpenRouter(meta) {
-  const { apiKey, model } = getOpenRouterSettings();
+async function requestGroq(meta) {
+  const cfg = readConfig();
+  const apiKey = process.env.GROQ_API_KEY || cfg.GROQ_API_KEY || '';
+  const model =
+    process.env.GROQ_MODEL ||
+    cfg.GROQ_MODEL ||
+    'openai/gpt-oss-120b';
 
   if (!apiKey) {
-    throw new Error('OPENROUTER_API_KEY غير موجود في config.json');
+    throw new Error('GROQ_API_KEY غير موجود في config.json أو متغيرات البيئة.');
   }
 
   const response = await fetch(
-    'https://openrouter.ai/api/v1/chat/completions',
+    'https://api.groq.com/openai/v1/chat/completions',
     {
       method: 'POST',
-
       headers: {
         'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://kotybook.site',
-        'X-Title': 'Kotybook Storybook'
+        'Content-Type': 'application/json'
       },
-
       body: JSON.stringify({
         model,
-
         messages: [
           {
             role: 'system',
-            content: 'أنت مؤلف قصص أطفال محترف. أعد JSON صالحًا فقط دون Markdown.'
+            content: 'أنت مؤلف محترف لقصص مصورة شخصية. أعد JSON صالحًا فقط دون Markdown أو مقدمات. التزم بكل قواعد الطلب.'
           },
           {
             role: 'user',
             content: storyPrompt(meta)
           }
         ],
-
         temperature: 0.85,
-        max_tokens: 8192,
-        response_format: {
-          type: 'json_object'
-        }
+        max_completion_tokens: 8192,
+        response_format: { type: 'json_object' }
       }),
-
       signal: AbortSignal.timeout(120000)
     }
   );
 
   const raw = await response.text();
-
   let data;
 
   try {
     data = JSON.parse(raw);
   } catch (_) {
-    throw new Error(
-      'OpenRouter رجّع استجابة غير مفهومة: ' + raw.slice(0, 300)
-    );
+    throw new Error('Groq رجّع استجابة غير مفهومة: ' + raw.slice(0, 300));
   }
 
   if (!response.ok) {
     throw new Error(
-      `OpenRouter HTTP ${response.status}: ${data.error?.message || raw.slice(0, 300)}`
+      `Groq HTTP ${response.status}: ${data.error?.message || raw.slice(0, 300)}`
     );
   }
 
   const output = data.choices?.[0]?.message?.content;
-
   if (!output) {
-    throw new Error('OpenRouter لم يُرجع نص القصة.');
+    throw new Error('Groq لم يُرجع نص القصة.');
   }
 
-  return validateStory(
-    extractJsonObject(output),
-    'OpenRouter'
-  );
+  return validateStory(extractJsonObject(output), 'Groq');
 }
-
-// ======================================================
-// تأليف القصة: Gemini فقط مع محاولتين
-// ======================================================
-
-async function generatePersonalizedStory(meta) {
-  const { apiKey, model } = getGeminiSettings();
-
-  if (!apiKey) {
-    throw new Error('GEMINI_API_KEY غير موجود في config.json');
-  }
-
+async function generateWithRetries(providerName, requestFn, meta, attempts = 2) {
   let lastError;
 
-  for (let attempt = 1; attempt <= 2; attempt++) {
+  for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
-      console.log(
-        `بدء تأليف القصة باستخدام Gemini ${model} - محاولة ${attempt}/2`
-      );
-
-      const story = await requestGemini(meta);
-
-      console.log(
-        `تم تأليف القصة بواسطة Gemini: "${story.title}" (غلاف + 9 صفحات).`
-      );
-
-      for (let i = 1; i < story.pages.length; i++) {
-        console.log(
-          `  الصفحة ${i + 1}: ${countWords(story.pages[i].text)} كلمة`
-        );
-      }
-
-      return story;
-
+      console.log(`بدء تأليف القصة باستخدام ${providerName} - محاولة ${attempt}/${attempts}`);
+      return await requestFn(meta);
     } catch (error) {
       lastError = error;
-
-      console.log(
-        `Gemini فشل في تأليف القصة (محاولة ${attempt}/2): ${error.message}`
-      );
-
-      if (attempt === 2) {
-        break;
-      }
-
-      await sleep(3000);
+      console.log(`${providerName} فشل في تأليف القصة (محاولة ${attempt}/${attempts}): ${error.message}`);
+      if (attempt < attempts) await sleep(3000);
     }
   }
 
-  throw new Error(
-    `فشل تأليف القصة باستخدام Gemini بعد محاولتين. السبب: ${lastError?.message || 'خطأ غير معروف'}`
-  );
+  throw lastError || new Error(`${providerName} فشل لسبب غير معروف.`);
+}
+
+async function generatePersonalizedStory(meta) {
+  let story;
+  let primaryError;
+
+  // Groq هو المحرك الأساسي.
+  try {
+    story = await generateWithRetries('Groq', requestGroq, meta, 2);
+    console.log(`تم تأليف القصة بواسطة Groq: "${story.title}" (غلاف + 9 صفحات).`);
+  } catch (error) {
+    primaryError = error;
+    console.error(`تعذر استخدام Groq؛ سيتم التحويل تلقائيًا إلى Gemini. السبب: ${error.message}`);
+
+    // Gemini هو المحرك الاحتياطي.
+    try {
+      story = await generateWithRetries('Gemini', requestGemini, meta, 2);
+      console.log(`تم تأليف القصة بواسطة Gemini الاحتياطي: "${story.title}" (غلاف + 9 صفحات).`);
+    } catch (fallbackError) {
+      throw new Error(
+        `فشل Groq الأساسي: ${primaryError.message} | وفشل Gemini الاحتياطي: ${fallbackError.message}`
+      );
+    }
+  }
+
+  for (let i = 1; i < story.pages.length; i++) {
+    console.log(`  الصفحة ${i + 1}: ${countWords(story.pages[i].text)} كلمة`);
+  }
+
+  return story;
 }
 
 // ======================================================
@@ -861,6 +847,19 @@ async function generateStoryFlow({
   outDir,
   limit
 }) {
+  if (!meta || !meta.name || !meta.dream) {
+    throw new Error('بيانات القصة ناقصة: الاسم والحلم مطلوبان.');
+  }
+
+  if (!photoPath || !fs.existsSync(photoPath)) {
+    throw new Error('الصورة المرجعية غير موجودة: ' + String(photoPath || ''));
+  }
+
+  if (!outDir) {
+    throw new Error('مسار مجلد حفظ الصور غير محدد.');
+  }
+
+  fs.mkdirSync(outDir, { recursive: true });
   DBG_DIR = outDir;
 
   // تأليف القصة قبل فتح Flow حتى لا ننشئ مشروعًا أو نرفع الصورة إذا تعذّر التأليف.
@@ -898,7 +897,7 @@ async function generateStoryFlow({
   storyFiles.storyPages = pages;
 
   const browser = await chromium.launch({
-    
+    channel: 'chrome',
     headless: true,
     ignoreDefaultArgs: ['--enable-automation'],
     args: ['--disable-blink-features=AutomationControlled']
@@ -924,7 +923,8 @@ async function generateStoryFlow({
     // 1) فتح مشروع جديد
 
     await page.goto(HOME, {
-      waitUntil: 'domcontentloaded'
+      waitUntil: 'domcontentloaded',
+      timeout: 120000
     });
 
     await sleep(7000);
@@ -1118,19 +1118,19 @@ async function generateStoryFlow({
           const settled = (await gridImages(page))
             .find((x) => x.id === fresh.id) || fresh;
 
-          const file = path.join(
+          const fileBase = path.join(
             outDir,
-            `flow-${String(i + 1).padStart(2, '0')}.jpg`
+            `flow-${String(i + 1).padStart(2, '0')}`
           );
 
-          await download(
+          const savedFile = await download(
             context,
             settled.src,
-            file
+            fileBase
           );
 
           known.add(fresh.id);
-          files.push(file);
+          files.push(savedFile);
 
           done = true;
 
