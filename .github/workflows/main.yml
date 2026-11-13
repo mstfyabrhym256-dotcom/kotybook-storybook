@@ -1,3 +1,4 @@
+```yaml
 name: Kotybook Storybook Generator
 
 on:
@@ -46,6 +47,7 @@ jobs:
         with:
           name: flow-debug-screenshot
           path: |
-          work/**/dbg-settings-open-failed.png
+            work/**/dbg-settings-open-failed.png
           if-no-files-found: warn
           retention-days: 3
+```
