@@ -46,7 +46,6 @@ jobs:
         with:
           name: flow-debug-screenshot
           path: |
-            dbg-settings-open-failed.png
-            **/dbg-settings-open-failed.png
+          work/**/dbg-settings-open-failed.png
           if-no-files-found: warn
           retention-days: 3
