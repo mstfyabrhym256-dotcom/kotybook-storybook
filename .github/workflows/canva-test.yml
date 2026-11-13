@@ -1,0 +1,88 @@
+
+name: Canva Login Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-canva:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Test Canva login
+        env:
+          CANVA_AUTH_STATE_JSON: ${{ secrets.CANVA_AUTH_STATE_JSON }}
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+
+          (async () => {
+            let browser;
+
+            try {
+              const state = JSON.parse(
+                process.env.CANVA_AUTH_STATE_JSON || '{}'
+              );
+
+              if (!state.cookies || !state.origins) {
+                throw new Error('Canva session data is incomplete');
+              }
+
+              browser = await chromium.launch({ headless: true });
+
+              const context = await browser.newContext({
+                storageState: state
+              });
+
+              const page = await context.newPage();
+
+              console.log('Opening Canva AI...');
+
+              await page.goto('https://www.canva.com/ai/', {
+                waitUntil: 'domcontentloaded',
+                timeout: 90000
+              });
+
+              await page.waitForTimeout(12000);
+
+              const currentUrl = page.url();
+              const title = await page.title();
+              const textareas = await page.locator('textarea:visible').count();
+
+              console.log('Page title:', title);
+
+              if (/login|signup|sign-in/i.test(currentUrl)) {
+                throw new Error('Canva redirected to login');
+              }
+
+              if (textareas < 1) {
+                throw new Error(
+                  'Canva AI editor was not detected. Login may have expired or the page changed.'
+                );
+              }
+
+              console.log('SUCCESS: Canva AI page opened with an active session.');
+            } catch (error) {
+              console.error('TEST FAILED:', error.message);
+              process.exitCode = 1;
+            } finally {
+              if (browser) await browser.close();
+            }
+          })();
+          NODE
