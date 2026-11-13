@@ -63,6 +63,8 @@ jobs:
 
               const currentUrl = page.url();
               const title = await page.title();
+              console.log('Current URL:', currentUrl);
+console.log('Page text:', (await page.locator('body').innerText()).slice(0, 1200));
               const textareas = await page.locator('textarea:visible').count();
 
               console.log('Page title:', title);
