@@ -146,11 +146,11 @@ async function main() {
       meta,
       photoPath,
       outDir: jobDir,
-      limit: 10
+      limit: 11
     }, 2);
 
-    if (!Array.isArray(imageFiles) || imageFiles.length !== 10) {
-      throw new Error(`المحرك أنشأ ${imageFiles?.length || 0} صورة بدل 10 صفحات.`);
+    if (!Array.isArray(imageFiles) || imageFiles.length !== 11) {
+      throw new Error(`المحرك أنشأ ${imageFiles?.length || 0} صورة بدل 11 صفحة.`);
     }
 
     const title = meta.title || storyTitle(meta.name);
