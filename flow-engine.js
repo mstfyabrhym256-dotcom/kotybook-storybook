@@ -1018,7 +1018,7 @@ async function generateStoryFlow({
     };
 
     // صفحة flow.google.com قد تكون صفحة تعريفية (/about)، لذلك ندخل مساحة العمل من زر CTA الرسمي.
-    if (/\\/about(?:[?#]|$)/i.test(page.url())) {
+    if (new URL(page.url()).pathname.replace(/\/$/, '') === '/about') {
       const cta = page.getByRole('button', { name: /^Create with Google Flow$/i }).first();
       await cta.waitFor({ state: 'visible', timeout: 20000 });
       await cta.scrollIntoViewIfNeeded();
@@ -1034,7 +1034,7 @@ async function generateStoryFlow({
           appPage = opened[opened.length - 1];
           break;
         }
-        if (!/\\/about(?:[?#]|$)/i.test(page.url())) appPage = page;
+        if (new URL(page.url()).pathname.replace(/\/$/, '') !== '/about') appPage = page;
       }
       if (appPage) page = appPage;
       await page.waitForLoadState('domcontentloaded', { timeout: 30000 }).catch(() => {});
@@ -1060,7 +1060,7 @@ async function generateStoryFlow({
     if (!newProjectButton && !(await page.locator(S.textbox).first().isVisible().catch(() => false))) {
       await homeDiagnostics();
       const bodyText = await page.locator('body').innerText().catch(() => '');
-      if (/accounts\\.google\\.com|sign in|تسجيل الدخول/i.test(page.url() + ' ' + bodyText)) {
+      if (/accounts\.google\.com|sign in|تسجيل الدخول/i.test(page.url() + ' ' + bodyText)) {
         throw new Error('FLOW_LOGIN_REQUIRED: جلسة Google Flow منتهية أو تطلب تسجيل الدخول. راجع flow-home-diagnostics.json.');
       }
       throw new Error('FLOW_HOME_NOT_READY: لم نصل إلى مساحة إنشاء المشاريع بعد الضغط على زر الدخول الرسمي. تم حفظ تشخيص الصفحة والصورة.');
@@ -1070,7 +1070,7 @@ async function generateStoryFlow({
       await newProjectButton.scrollIntoViewIfNeeded();
       await sleep(1000);
       await newProjectButton.click({ timeout: 30000 });
-      await page.waitForURL(/\\/project\\//, {
+      await page.waitForURL(url => url.pathname.includes('/project/'), {
         timeout: 60000,
         waitUntil: 'domcontentloaded'
       });
