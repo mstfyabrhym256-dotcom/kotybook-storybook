@@ -91,9 +91,10 @@ function buildPrompt(pg, name, title, dream, subtitle, age, gender, pageIndex) {
   const scenePrompt = String(pg.scene || '').trim();
   const watermark = 'kotybook 01276626592';
   const formatRule = 'Flat, horizontal (4:3) full-bleed artwork, landscape orientation wider than tall, no borders, no frames, no book spines, no digital UI mockups.';
-  const faceRule = `Keep the exact child from the reference image (${childAgeGender}, ${childName}); preserve 100% natural photorealistic lifelike facial features, skin texture, and hairstyle. The child's face and body must NOT receive cartoon, 3D, or illustration filters.`;
-  const uniformRule = `Show a realistic natural-fabric career uniform tailored to the child's dream of ${childDream}, with real fabric folds and natural lighting, never cartoonish.`;
-  const environmentRule = `Use a vibrant rich 3D toy-like Pixar-style world matching ${childDream}, rich colors, lively details, and soft cinematic depth-of-field blur in the background.`;
+  const faceRule = `IDENTITY LOCK — this is the SAME real child in every single page of this book. Use the uploaded reference photo as the sole and exact identity source for ${childName} (${childAgeGender}). Preserve the child's recognizable face with maximum fidelity: same facial proportions, eyes, eyebrows, nose, lips, cheeks, skin tone and texture, hairline, hairstyle and hair color. Do not reinterpret, beautify, age up/down, replace, blend, or redesign the child. Never create a lookalike or a different child. The face, hair and visible skin remain natural photorealistic live-action photography; absolutely no cartoon, illustration, anime, doll-like, or 3D treatment on the child. Keep the same identity, apparent age and hairstyle across all pages and camera angles.`;
+  const uniformRule = `CHARACTER CONTINUITY — dress the same child in one consistent, realistic career uniform appropriate to the dream of ${childDream}. Keep the uniform's exact colors, design, accessories, fit and details identical from page to page; only show practical changes required by the scene. Real natural fabric, believable folds and lighting. Do not randomly change clothes, colors, badges, hairstyle or accessories between pages.`;
+  const environmentRule = `WORLD STYLE — create a vibrant, rich, premium 3D animated Pixar-style storybook environment matching ${childDream}, with colorful detailed surroundings, cinematic lighting and soft depth of field. The environment and objects are stylized 3D; the child's real face, hair, skin and body remain photorealistic. Maintain the same visual art direction, color grading and lighting quality throughout the entire book.`;
+  const textRule = 'LANGUAGE AND LETTERING RULE — every readable word in the artwork must be in correct Arabic only, written right-to-left with properly connected Arabic letters and correct spelling. Never use English, Latin letters, transliteration, fake Arabic-looking symbols, random glyphs, gibberish, or invented text. Do not translate, paraphrase, shorten, duplicate or add any words to the supplied Arabic text. Keep the Arabic lettering large, clear, correctly shaped and fully legible.';
   const brandRule = `Render the exact tiny subtle white sans-serif watermark "${watermark}" with faint drop shadow in the very bottom-left corner.`;
 
   if (pg.cover) {
@@ -104,9 +105,10 @@ function buildPrompt(pg, name, title, dream, subtitle, age, gender, pageIndex) {
       faceRule,
       uniformRule,
       environmentRule,
-      `At the top center, render the exact Arabic main title "${String(title || '').trim()}" and subtitle "${String(subtitle || '').trim()}" as custom-drawn interlocking volumetric 3D artistic Arabic typography with glossy glowing outlines, woven with tiny career-related 3D icons, stars, and clouds.`,
+      textRule,
+      `At the top center, render the exact Arabic main title "${String(title || '').trim()}" and subtitle "${String(subtitle || '').trim()}" exactly as supplied. Use elegant, clearly legible, correctly connected Arabic typography with proper right-to-left direction. Preserve every letter and word exactly; do not add English text or decorative pseudo-lettering. Integrate the title beautifully with subtle glossy 3D depth, career-related icons, stars and clouds without obscuring the child's face.`,
       brandRule
-    ].filter(Boolean).join('\n\n');
+    ].filter(Boolean).join('\\n\\n');
   }
 
   return [
@@ -116,12 +118,13 @@ function buildPrompt(pg, name, title, dream, subtitle, age, gender, pageIndex) {
     faceRule,
     uniformRule,
     environmentRule,
-    `Render this exact Egyptian Arabic story paragraph verbatim, with no changes, omissions, or extra words: "${storyText}"`,
-    'Place the text in uncluttered open space at the top or bottom using a warm friendly rounded Arabic children’s font, high-contrast white and soft pastel yellow/blue, over an extremely soft borderless feathered defocus blur directly behind the letters only; absolutely no boxes or rectangular edges.',
+    textRule,
+    `Render this exact Egyptian Arabic story paragraph verbatim, with no changes, omissions, substitutions, translations or extra words: "${storyText}"`,
+    'Place the complete Arabic paragraph in a clean, uncluttered open area at the top or bottom. Use a warm, friendly, highly legible rounded Arabic children’s font, correct connected letterforms and right-to-left reading order. Use high-contrast white with soft pastel yellow/blue accents over an extremely soft borderless feathered defocus blur directly behind the letters only. Keep all words inside the image with comfortable spacing; absolutely no boxes, rectangular panels, English lettering or decorative pseudo-text.',
     pageIndex === 3 ? 'COUNTING GAME: show exactly 3 identical items of one career-related type and exactly 5 identical items of a different career-related type. Make every item individually visible and countable, with dotted chalk-style guide lines on the ground.' : '',
     pageIndex === 7 ? 'MAZE GAME: show a hand-drawn colorful dotted-line labyrinth on a clipboard or map, with the exact Arabic labels "البداية" and "النهاية" clearly placed at its start and finish; the reader must be able to trace the path around an obstacle.' : '',
     brandRule
-  ].filter(Boolean).join('\n\n');
+  ].filter(Boolean).join('\\n\\n');
 }
 
 
