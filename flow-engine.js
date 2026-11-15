@@ -465,6 +465,55 @@ function getGeminiSettings() {
 // ======================================================
 
 function storyPrompt(meta) {
+  const name = String(meta.name || '').trim();
+  const dream = String(meta.dream || '').trim();
+  const isAmrDoctor = /عمرو/.test(name) && /(دكتور|طبيب)/.test(dream);
+
+  if (isAmrDoctor) {
+    return `أنت مؤلف ومخرج قصص أطفال محترف. أنشئ قصة مصورة بعنوان "عمرو الدكتور" والعنوان الفرعي "بطل الرحمة".
+
+بيانات البطل:
+- الاسم: عمرو.
+- العمر: 6 سنوات.
+- الحلم: أن يصبح طبيبًا.
+- اجعل عمرو طفلًا مصريًا ثابت الملامح في كل المشاهد، واحتفظ بملامح صورة المرجع إن كانت متاحة.
+- العالم البصري: بيئة مستشفى أطفال مستقبلية، لطيفة ومبهجة، بأسلوب 3D toy-like Pixar-style. الطفل نفسه فوتوغرافي واقعي تمامًا وليس كرتونيًا.
+
+قواعد النص:
+1. اكتب بالعامية المصرية البسيطة فقط، من غير فصحى ثقيلة أو كلمات إنجليزية.
+2. أنشئ 11 صفحة بالضبط: غلاف واحد ثم 10 صفحات داخلية بالترتيب المحدد أدناه.
+3. نص كل صفحة داخلية من 20 إلى 30 كلمة بالضبط. لا تكتب نصًا على الغلاف في حقل text.
+4. اجعل النص مناسبًا لطفل عمره 6 سنوات، واضحًا ودافئًا ومترابطًا.
+5. scene باللغة الإنجليزية، وصف بصري تفصيلي واضح لما يجب أن يظهر في الصورة، مع الحفاظ على نفس الطفل والملابس والهوية البصرية.
+6. لا تغيّر ترتيب الأحداث ولا تحذف أي لعبة أو عنصر مطلوب.
+7. أضف في وصف كل مشهد علامة مائية صغيرة أسفل اليسار بالنص الحرفي: kotybook 01276626592.
+8. الغلاف يحمل تايبوجرافي عربي فني واضح بالنص الحرفي "عمرو الدكتور" وتحته "بطل الرحمة".
+9. صفحة المتاهة يجب أن تحتوي بوضوح على علامتي "البداية" و"النهاية"، ومسار متاهة مرئي يمكن تتبعه.
+
+ترتيب الصفحات:
+1) الغلاف: عمرو الطبيب الصغير في مقدمة مستشفى أطفال مستقبلي، مع سماعة طبيب ومعطف أبيض مناسب لطفل، تايبوجرافي العنوان العربي "عمرو الدكتور" و"بطل الرحمة".
+2) حلمه في غرفة النوم: عمرو يتخيل نفسه طبيبًا، مع أدوات لعب طبية بجانب السرير.
+3) الوصول للمستشفى: عمرو يصل إلى مستشفى الأطفال المستقبلية ويستقبله فريق لطيف.
+4) لعبة العد: نشاط واضح فيه بالضبط 3 شنط إسعاف حمراء و5 صناديق ضمادات ملونة، ويعدّها عمرو.
+5) الكشف الطبي: عمرو يفحص دمية/مريضًا صغيرًا بأدوات طبية آمنة، مع طبيب مشرف مبتسم.
+6) نداء الطوارئ: إشارة طوارئ لطيفة في المستشفى، والفريق يتحرك بسرعة وهدوء لمساعدة طفل يحتاج الرعاية.
+7) علاج ذراع لاعب: عمرو يساعد في علاج ذراع لاعب صغير، ويضع له جبيرة آمنة بمساعدة الطبيب المشرف.
+8) المتاهة: صفحة نشاط تفاعلية مرسومة كمتاهة واضحة من معمل الدواء إلى غرفة المريض. الطريق يمر عبر قلوب ونجوم فيتامين، مع تجنب الميكروبات الكرتونية اللطيفة. أظهر "البداية" عند المعمل و"النهاية" عند غرفة المريض.
+9) التغلب على السخونية: عمرو يساعد الطبيب في متابعة حرارة طفل وتقديم الرعاية والراحة حتى تبدأ الحرارة في الانخفاض.
+10) التعافي: الطفل المريض أصبح أفضل، يبتسم ويشكر عمرو والفريق، وعمرو يشعر بالفخر والرحمة.
+11) احتفال العودة البطولية: احتفال صغير بعودة الطفل المتعافي، مع عمرو بطلًا محبوبًا وسط الفريق والأهل.
+
+أخرج JSON صالحًا فقط بهذا الشكل:
+{
+  "title": "عمرو الدكتور - بطل الرحمة",
+  "pages": [
+    { "scene": "English visual description", "text": "", "cover": true },
+    { "scene": "English visual description", "text": "نص مصري من 20 إلى 30 كلمة", "cover": false }
+  ]
+}
+يجب أن يكون عدد العناصر 11 بالضبط. راجع عدد كلمات النصوص الداخلية، وتأكد أن كل صفحة تطابق الحدث المخصص لها. `;
+  }
+
   return `أنت مؤلف محترف لقصص مصورة شخصية ذات جودة أدبية وسينمائية عالية. اكتب قصة أصلية مترابطة يكون بطلها الشخص صاحب الصورة المرجعية.
 
 اسم صاحب القصة: ${meta.name}
@@ -475,32 +524,26 @@ ${meta.dream}
 </dream>
 
 قواعد إلزامية:
-1) لا تفترض أن بطل القصة طفل. قد يكون طفلًا أو مراهقًا أو بالغًا أو أكبر سنًا. لا تذكر عمرًا أو وصفًا عمريًا من عندك إطلاقًا، ولا تستخدم كلمة طفل أو صغير إلا إذا كان ذلك مثبتًا صراحة في بيانات الطلب.
-2) اجعل صاحب الصورة هو الشخصية الرئيسية في جميع الأحداث. لا تخترع ملامح أو لون شعر أو عينين أو تفاصيل جسدية؛ هذه التفاصيل تؤخذ من الصورة المرجعية فقط.
-3) اكتب بالعربية الفصحى المبسطة، بأسلوب دافئ وذكي ومؤثر، يناسب طبيعة الحلم دون التصريح بعمر الشخصية.
-4) أنشئ 10 صفحات بالضبط: الصفحة الأولى غلاف، والصفحات 2 إلى 10 تسعة أحداث مترابطة.
-5) ابنِ مسارًا متماسكًا: تقديم الحلم، قرار البداية، خطوات عملية، عقبة واقعية، اكتشاف أو مساعدة، تدريب وتطور، انتكاسة أو تحدٍ أكبر، حل ذكي، ثم إنجاز أو تقدم ملموس ونهاية مُرضية.
-6) اجعل كل حدث مرتبطًا مباشرة بالحلم أو الهدف المحدد. تجنب القصص العامة والحشو وتكرار المعنى.
-7) نص كل صفحة داخلية جملتان واضحتان تقريبًا، من 20 إلى 32 كلمة عربية، والأفضل 24 إلى 28 كلمة. لا تستخدم التشكيل أو الحركات.
-8) اكتب scene باللغة الإنجليزية فقط. اجعله وصفًا بصريًا محددًا غنيًا بالتفاصيل: المكان، الفعل الأساسي، الانفعال، العناصر المهمة، الإضاءة والجو العام. يجب أن يكون لكل صفحة حدث بصري مختلف فعلًا.
-9) لا تكتب أي نص أو لافتات أو حروف داخل وصف scene؛ سيُضاف النص العربي والتصميم لاحقًا أثناء إخراج الكتاب.
-10) لا تفترض مهنة أو مكانًا أو علاقة أو شخصية مساعدة غير لازمة للحلم. اجعل أي شخصية مساعدة منطقية ومفيدة للحبكة.
-11) اجعل التحديات آمنة وغير عنيفة وغير مخيفة، ومناسبة لطبيعة الحلم.
-12) اجعل النهاية مؤثرة ومشبعة، وتُظهر تقدمًا حقيقيًا أو إنجازًا مرتبطًا بالهدف، دون ادعاء أن الحلم تحقق بالكامل إذا لم يكن ذلك منطقيًا.
-13) الغلاف مشهد بصري قوي يرمز للحلم. اجعل text فارغًا تمامًا وcover=true.
-14) الصفحات الداخلية cover=false وبها نص عربي مستوفٍ لعدد الكلمات.
-15) أخرج JSON صالحًا فقط دون Markdown أو مقدمات أو تعليقات.
+1) لا تفترض عمرًا أو وصفًا عمريًا من عندك إلا إذا كان مثبتًا في بيانات الطلب.
+2) اجعل صاحب الصورة هو الشخصية الرئيسية في جميع الأحداث، ولا تخترع ملامحه.
+3) اكتب بالعربية الفصحى المبسطة، بأسلوب دافئ وذكي ومؤثر.
+4) أنشئ 11 صفحة بالضبط: غلاف + 10 أحداث مترابطة.
+5) اجعل كل حدث مرتبطًا مباشرة بالحلم، مع بداية وعقبة وتطور وحل ونهاية مُرضية.
+6) نص كل صفحة داخلية من 20 إلى 32 كلمة عربية.
+7) اكتب scene باللغة الإنجليزية فقط، بوصف بصري محدد ومختلف لكل صفحة.
+8) لا تكتب لافتات أو حروف داخل scene إلا إذا كانت جزءًا مطلوبًا صراحة من النشاط.
+9) الغلاف text فارغ وcover=true، والصفحات الداخلية cover=false.
+10) أخرج JSON صالحًا فقط دون Markdown.
 
 المخطط:
 {
   "title": "عنوان عربي جذاب",
   "pages": [
     { "scene": "Detailed English cinematic visual description", "text": "", "cover": true },
-    { "scene": "Detailed English cinematic visual description", "text": "نص عربي من جملتين ومن 20 إلى 32 كلمة", "cover": false }
+    { "scene": "Detailed English cinematic visual description", "text": "نص عربي من 20 إلى 32 كلمة", "cover": false }
   ]
 }
-
-يجب أن تحتوي pages على 10 عناصر بالضبط. راجع ترابط الأحداث وعدد كلمات كل صفحة قبل إخراج JSON.`;
+يجب أن تحتوي pages على 11 عنصرًا بالضبط.`;
 }
 
 // ======================================================
@@ -542,10 +585,10 @@ function validateStory(story, provider) {
     !story ||
     !story.title ||
     !Array.isArray(story.pages) ||
-    story.pages.length !== 10
+    story.pages.length !== 11
   ) {
     throw new Error(
-      `${provider} لم يلتزم بعدد الصفحات المطلوب. المطلوب غلاف + 9 أحداث، والواصل ${story?.pages?.length || 0}.`
+      `${provider} لم يلتزم بعدد الصفحات المطلوب. المطلوب غلاف + 10 أحداث، والواصل ${story?.pages?.length || 0}.`
     );
   }
 
@@ -556,6 +599,7 @@ function validateStory(story, provider) {
   }
 
   const validatedPages = [];
+  const isAmrDoctorStory = /عمرو/.test(String(story.title || '')) && /(الدكتور|طبيب)/.test(String(story.title || ''));
 
   for (let i = 0; i < story.pages.length; i++) {
     const pg = story.pages[i];
@@ -600,7 +644,7 @@ function validateStory(story, provider) {
     const cleanText = stripArabicMarks(pg.text);
     const words = countWords(cleanText);
 
-    if (words < 20 || words > 32) {
+    if (words < 20 || words > (isAmrDoctorStory ? 30 : 32)) {
       throw new Error(
         `الصفحة ${pageNumber} تحتوي على ${words} كلمة فقط. المطلوب من 20 إلى 32 كلمة.`
       );
@@ -831,7 +875,7 @@ async function generatePersonalizedStory(meta) {
   // Groq هو المحرك الأساسي.
   try {
     story = await generateWithRetries('Groq', requestGroq, meta, 2);
-    console.log(`تم تأليف القصة بواسطة Groq: "${story.title}" (غلاف + 9 صفحات).`);
+    console.log(`تم تأليف القصة بواسطة Groq: "${story.title}" (غلاف + 10 صفحات).`);
   } catch (error) {
     primaryError = error;
     console.error(`تعذر استخدام Groq؛ سيتم التحويل تلقائيًا إلى Gemini. السبب: ${error.message}`);
@@ -903,9 +947,9 @@ async function generateStoryFlow({
     meta.title = story.title;
   }
 
-  if (!Array.isArray(pages) || pages.length !== 10) {
+  if (!Array.isArray(pages) || pages.length !== 11) {
     throw new Error(
-      `القصة لازم تحتوي على 10 صفحات بالضبط (غلاف + 9 أحداث). الموجود: ${pages?.length || 0}`
+      `القصة لازم تحتوي على 11 صفحة بالضبط (غلاف + 10 أحداث). الموجود: ${pages?.length || 0}`
     );
   }
 
@@ -956,22 +1000,51 @@ async function generateStoryFlow({
       timeout: 2500
     }).catch(() => {});
 
-    const newProjectButton = page
-      .locator('button.new-project-button')
-      .first();
+    const homeDiagnostics = async () => {
+      const details = await page.evaluate(() => ({
+        url: location.href,
+        title: document.title,
+        body: (document.body?.innerText || '').slice(0, 5000),
+        buttons: [...document.querySelectorAll('button')].slice(0, 80).map(b => ({
+          text: (b.innerText || '').trim().slice(0, 100),
+          aria: b.getAttribute('aria-label'),
+          testid: b.getAttribute('data-testid'),
+          cls: String(b.className || '').slice(0, 120),
+          disabled: b.disabled
+        }))
+      })).catch(error => ({ error: error.message }));
+      fs.writeFileSync(path.join(outDir, 'flow-home-diagnostics.json'), JSON.stringify(details, null, 2));
+      await dbg('flow-home-not-ready');
+    };
 
-    await newProjectButton.waitFor({
-      state: 'visible',
-      timeout: 30000
-    });
+    const candidates = [
+      page.locator('button.new-project-button:visible').first(),
+      page.getByRole('button', { name: /new project|create project|مشروع جديد|إنشاء مشروع/i }).first(),
+      page.locator('button[aria-label*="new project" i]:visible').first(),
+      page.locator('button[data-testid*="new-project" i]:visible').first()
+    ];
+
+    let newProjectButton = null;
+    for (const candidate of candidates) {
+      try {
+        await candidate.waitFor({ state: 'visible', timeout: 7000 });
+        newProjectButton = candidate;
+        break;
+      } catch (_) {}
+    }
+
+    if (!newProjectButton) {
+      await homeDiagnostics();
+      const bodyText = await page.locator('body').innerText().catch(() => '');
+      if (/accounts\\.google\\.com|sign in|تسجيل الدخول/i.test(page.url() + ' ' + bodyText)) {
+        throw new Error('FLOW_LOGIN_REQUIRED: جلسة Google Flow منتهية أو تطلب تسجيل الدخول. راجع flow-home-diagnostics.json.');
+      }
+      throw new Error('FLOW_HOME_NOT_READY: لم يظهر زر إنشاء مشروع في Google Flow. تم حفظ تشخيص الصفحة والصورة.');
+    }
 
     await newProjectButton.scrollIntoViewIfNeeded();
     await sleep(1000);
-
-    await newProjectButton.click({
-      timeout: 30000,
-      force: true
-    });
+    await newProjectButton.click({ timeout: 30000 });
 
     await page.waitForURL(/\/project\//, {
       timeout: 60000,
