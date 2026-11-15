@@ -82,50 +82,48 @@ function storyTitle(name) {
 // برومبت توليد الصور في Flow
 // ======================================================
 
-function buildPrompt(pg, name, title, dream) {
+function buildPrompt(pg, name, title, dream, subtitle, age, gender, pageIndex) {
   const childName = String(name || '').trim();
   const childDream = String(dream || '').trim();
-  const themeColors = 'soft navy blue, sky blue, and warm harmonious tones';
+  const childAgeGender = [String(gender || '').trim(), String(age || '').trim()]
+    .filter(Boolean).join(' ') || 'as shown in the reference image';
+  const storyText = String(pg.text || '').trim();
+  const scenePrompt = String(pg.scene || '').trim();
+  const watermark = 'kotybook 01276626592';
+  const formatRule = 'Flat, horizontal (4:3) full-bleed artwork, landscape orientation wider than tall, no borders, no frames, no book spines, no digital UI mockups.';
+  const faceRule = `Keep the exact child from the reference image (${childAgeGender}, ${childName}); preserve 100% natural photorealistic lifelike facial features, skin texture, and hairstyle. The child's face and body must NOT receive cartoon, 3D, or illustration filters.`;
+  const uniformRule = `Show a realistic natural-fabric career uniform tailored to the child's dream of ${childDream}, with real fabric folds and natural lighting, never cartoonish.`;
+  const environmentRule = `Use a vibrant rich 3D toy-like Pixar-style world matching ${childDream}, rich colors, lively details, and soft cinematic depth-of-field blur in the background.`;
+  const brandRule = `Render the exact tiny subtle white sans-serif watermark "${watermark}" with faint drop shadow in the very bottom-left corner.`;
 
   if (pg.cover) {
-    const prompt = `Subject & Face Preservation:
-Keep the exact real-life child from the reference image without any changes to their face, facial features, skin texture, hair, or natural expression. The child's face and body must remain 100% real-life photography—do NOT apply any cartoon, 3D, or illustration filter to the person.
-
-Clothing & Pose:
-The child is wearing a realistic, natural-fabric child's outfit for a ${childDream} (real clothing texture, natural folds, realistic studio lighting). The child is naturally holding a real prop related to ${childDream} and smiling directly at the camera, positioned in the lower-center foreground.
-
-Background Environment:
-Replace the background with a clean, well-organized, cute 3D stylized toy-like room representing the world of ${childDream}, using soft ${themeColors} tones. Keep the background tidy and uncluttered with only 1 or 2 cute thematic elements in logical places, creating a smooth, natural blend between the real-life photographed child and the colorful storybook background.
-
-Arabic Cover Typography:
-Design this as a flat, horizontal (4:3) full-bleed children's book cover with no borders or frames. At the top center, render large, glossy, 3D playful Arabic bubble text with glowing outlines that reads: "${childName} ${String(title || 'رحلة نحو الحلم')}". Directly below it, in smaller matching Arabic bubble text, render: "حكاية ${childName}". Add a tiny cute thematic icon resting on the corner of the title text.
-
-Brand Watermark:
-In the very bottom-left corner, render a tiny, subtle, clean white sans-serif watermark text with a faint drop shadow that reads: "kotybook 01276626592". Keep it small and discreet so it blends naturally into the bottom edge.`;
-    return prompt;
+    return [
+      scenePrompt,
+      'FINAL COVER REQUIREMENTS:',
+      formatRule,
+      faceRule,
+      uniformRule,
+      environmentRule,
+      `At the top center, render the exact Arabic main title "${String(title || '').trim()}" and subtitle "${String(subtitle || '').trim()}" as custom-drawn interlocking volumetric 3D artistic Arabic typography with glossy glowing outlines, woven with tiny career-related 3D icons, stars, and clouds.`,
+      brandRule
+    ].filter(Boolean).join('\n\n');
   }
 
-  const scene = String(pg.scene || '').trim();
-  const storyText = String(pg.text || '').trim();
-
-  return `Visual Style & Face Preservation:
-A flat, horizontal (4:3) full-bleed children's storybook interior page. Keep the exact real-life child from the reference image, maintaining their 100% natural, photorealistic, lifelike facial features, skin texture, and original hairstyle completely preserved with 100% real-life photography (absolutely NO cartoon, 3D, or illustration filters on the person).
-
-Subject, Outfit & Action:
-The child is wearing a realistic, natural-fabric child's outfit suitable for ${childDream} (with real fabric folds and natural studio lighting, NOT cartoonish).
-In a natural, dynamic posture, the child is ${scene}, looking toward the main activity related to ${childDream}.
-
-Environment (Clean 3D Stylized World):
-The child is seamlessly integrated into a vibrant, clean, and well-organized 3D toy-like Pixar-style environment representing ${scene} in harmonious ${themeColors} tones. Keep the background tidy and uncluttered with cinematic depth-of-field blur in the back so the child and scene stand out naturally.
-
-Text Integration & Styling (Borderless & Natural):
-Seamlessly and naturally integrated ONLY directly behind the letterings of the text—absolutely NO borders, boxes, geometric shapes, or rectangular edges of any kind are visible. Render high-contrast, clean Arabic text with an extremely soft, subtle, borderless fading defocus blur (feathered natural defocus) acting only as a faint optical shadow directly behind the letters to ensure perfect legibility against the background.
-Place the Arabic story text naturally in an open, uncluttered area of the scene (an open area away from the main subject):
-"${storyText}"
-
-Brand Watermark & Format:
-In the very bottom-left corner, render a tiny, subtle, clean white sans-serif watermark text with a faint drop shadow that reads: "kotybook 01276626592". Flat full-bleed interior story page with natural, cinematic lighting and no artificial frames, borders, or mockup perspectives.`;
+  return [
+    scenePrompt,
+    'FINAL INTERIOR PAGE REQUIREMENTS:',
+    formatRule,
+    faceRule,
+    uniformRule,
+    environmentRule,
+    `Render this exact Egyptian Arabic story paragraph verbatim, with no changes, omissions, or extra words: "${storyText}"`,
+    'Place the text in uncluttered open space at the top or bottom using a warm friendly rounded Arabic children’s font, high-contrast white and soft pastel yellow/blue, over an extremely soft borderless feathered defocus blur directly behind the letters only; absolutely no boxes or rectangular edges.',
+    pageIndex === 3 ? 'COUNTING GAME: show exactly 3 identical items of one career-related type and exactly 5 identical items of a different career-related type. Make every item individually visible and countable, with dotted chalk-style guide lines on the ground.' : '',
+    pageIndex === 7 ? 'MAZE GAME: show a hand-drawn colorful dotted-line labyrinth on a clipboard or map, with the exact Arabic labels "البداية" and "النهاية" clearly placed at its start and finish; the reader must be able to trace the path around an obstacle.' : '',
+    brandRule
+  ].filter(Boolean).join('\n\n');
 }
+
 
 // ======================================================
 // أدوات الصفحة
@@ -467,212 +465,182 @@ function getGeminiSettings() {
 function storyPrompt(meta) {
   const name = String(meta.name || '').trim();
   const dream = String(meta.dream || '').trim();
-  const isAmrDoctor = /عمرو/.test(name) && /(دكتور|طبيب)/.test(dream);
+  const age = String(meta.age || meta.childAge || '').trim();
+  const gender = String(meta.gender || meta.childGender || '').trim();
+  const ageGender = [gender, age].filter(Boolean).join(' ') || 'غير محدد';
 
-  if (isAmrDoctor) {
-    return `أنت مؤلف ومخرج قصص أطفال محترف. أنشئ قصة مصورة بعنوان "عمرو الدكتور" والعنوان الفرعي "بطل الرحمة".
+  return `=========================================
+[بيانات الطفل - عدّل هنا فقط]
 
-بيانات البطل:
-- الاسم: عمرو.
-- العمر: 6 سنوات.
-- الحلم: أن يصبح طبيبًا.
-- اجعل عمرو طفلًا مصريًا ثابت الملامح في كل المشاهد، واحتفظ بملامح صورة المرجع إن كانت متاحة.
-- العالم البصري: بيئة مستشفى أطفال مستقبلية، لطيفة ومبهجة، بأسلوب 3D toy-like Pixar-style. الطفل نفسه فوتوغرافي واقعي تمامًا وليس كرتونيًا.
+- اسم الطفل: ${name}
+- حلم الطفل / المهنة: ${dream}
+- عمر الطفل والنوع: ${ageGender}
+  =========================================
 
-قواعد النص:
-1. اكتب بالعامية المصرية البسيطة فقط، من غير فصحى ثقيلة أو كلمات إنجليزية.
-2. أنشئ 11 صفحة بالضبط: غلاف واحد ثم 10 صفحات داخلية بالترتيب المحدد أدناه.
-3. نص كل صفحة داخلية من 20 إلى 30 كلمة بالضبط. لا تكتب نصًا على الغلاف في حقل text.
-4. اجعل النص مناسبًا لطفل عمره 6 سنوات، واضحًا ودافئًا ومترابطًا.
-5. scene باللغة الإنجليزية، وصف بصري تفصيلي واضح لما يجب أن يظهر في الصورة، مع الحفاظ على نفس الطفل والملابس والهوية البصرية.
-6. لا تغيّر ترتيب الأحداث ولا تحذف أي لعبة أو عنصر مطلوب.
-7. أضف في وصف كل مشهد علامة مائية صغيرة أسفل اليسار بالنص الحرفي: kotybook 01276626592.
-8. الغلاف يحمل تايبوجرافي عربي فني واضح بالنص الحرفي "عمرو الدكتور" وتحته "بطل الرحمة".
-9. صفحة المتاهة يجب أن تحتوي بوضوح على علامتي "البداية" و"النهاية"، ومسار متاهة مرئي يمكن تتبعه.
+ACT AS AN EXPERT CHILDREN'S STORYBOOK AUTHOR AND AI IMAGE PROMPT ENGINEER.
+Based on the child's details above, generate a complete, 11-page personalized children's storybook package (1 Front Cover + 10 Interior Narrative Pages).
 
-ترتيب الصفحات:
-1) الغلاف: عمرو الطبيب الصغير في مقدمة مستشفى أطفال مستقبلي، مع سماعة طبيب ومعطف أبيض مناسب لطفل، تايبوجرافي العنوان العربي "عمرو الدكتور" و"بطل الرحمة".
-2) حلمه في غرفة النوم: عمرو يتخيل نفسه طبيبًا، مع أدوات لعب طبية بجانب السرير.
-3) الوصول للمستشفى: عمرو يصل إلى مستشفى الأطفال المستقبلية ويستقبله فريق لطيف.
-4) لعبة العد: نشاط واضح فيه بالضبط 3 شنط إسعاف حمراء و5 صناديق ضمادات ملونة، ويعدّها عمرو.
-5) الكشف الطبي: عمرو يفحص دمية/مريضًا صغيرًا بأدوات طبية آمنة، مع طبيب مشرف مبتسم.
-6) نداء الطوارئ: إشارة طوارئ لطيفة في المستشفى، والفريق يتحرك بسرعة وهدوء لمساعدة طفل يحتاج الرعاية.
-7) علاج ذراع لاعب: عمرو يساعد في علاج ذراع لاعب صغير، ويضع له جبيرة آمنة بمساعدة الطبيب المشرف.
-8) المتاهة: صفحة نشاط تفاعلية مرسومة كمتاهة واضحة من معمل الدواء إلى غرفة المريض. الطريق يمر عبر قلوب ونجوم فيتامين، مع تجنب الميكروبات الكرتونية اللطيفة. أظهر "البداية" عند المعمل و"النهاية" عند غرفة المريض.
-9) التغلب على السخونية: عمرو يساعد الطبيب في متابعة حرارة طفل وتقديم الرعاية والراحة حتى تبدأ الحرارة في الانخفاض.
-10) التعافي: الطفل المريض أصبح أفضل، يبتسم ويشكر عمرو والفريق، وعمرو يشعر بالفخر والرحمة.
-11) احتفال العودة البطولية: احتفال صغير بعودة الطفل المتعافي، مع عمرو بطلًا محبوبًا وسط الفريق والأهل.
+STRICT OUTPUT STRUCTURE:
 
-أخرج JSON صالحًا فقط بهذا الشكل:
-{
-  "title": "عمرو الدكتور - بطل الرحمة",
-  "pages": [
-    { "scene": "English visual description", "text": "", "cover": true },
-    { "scene": "English visual description", "text": "نص مصري من 20 إلى 30 كلمة", "cover": false }
-  ]
+For EACH of the 11 pages (Page 0 Cover through Page 10), you MUST output TWO distinct parts clearly separated:
+
+1. [النص العربي - بالعامية المصرية]: The exact story text to be printed on that page (for Pages 1–10, strictly 20 to 30 words in warm, simple, engaging Egyptian Colloquial Arabic "العامية المصرية البسيطة للأطفال" — NO Modern Standard Arabic/الفصحى. For Page 0, provide the Main Title and Subtitle).
+2. [Image Generation Prompt]: A standalone, detailed English image-generation prompt tailored specifically for that single page, embedding the exact Arabic text from Part 1, and strictly enforcing all Core Visual, Typography, and Branding rules below.
+
+
+---
+
+STORY ARC & PAGE-BY-PAGE BLUEPRINT (Adapt dynamically to the child's dream/career):
+
+- PAGE 0 (FRONT COVER): Heroic, action-packed cover scene showcasing the child in their dream role.
+- PAGE 1 (The Calling): The child in their bedroom/study surrounded by toys, posters, and books related to their dream, imagining their future. (20–30 words Egyptian Arabic)
+- PAGE 2 (The Preparation): Arriving at the main workplace/academy, wearing their full realistic uniform, checking tools/maps, and greeting their team. (20–30 words Egyptian Arabic)
+- PAGE 3 (Visual Activity Game 1 - COUNTING GAME): An interactive counting scene! Dotted chalk-style guidelines drawn on the floor/ground—the reader must COUNT 3 specific items and 5 other specific items related to the career to help the child prepare. (20–30 words Egyptian Arabic)
+- PAGE 4 (In Action / Command): The child inside the main workspace/vehicle/station, operating high-tech tools, screens, or equipment confidently. (20–30 words Egyptian Arabic)
+- PAGE 5 (High Energy Moment): Peak excitement! Launching, speeding, lifting, or rushing into action in the golden morning light. (20–30 words Egyptian Arabic)
+- PAGE 6 (Exploring / High Vantage): The child pointing proudly toward an impressive view or achievement related to their mission. (20–30 words Egyptian Arabic)
+- PAGE 7 (Visual Activity Game 2 - MAZE / DOTTED PATH): Hand-drawn on a clipboard/map held or placed in front of the child! A colorful dotted-line labyrinth connecting "البداية" to "النهاية" through career-themed markers—the reader traces with their finger to avoid an obstacle. (20–30 words Egyptian Arabic)
+- PAGE 8 (Overcoming the Challenge): High drama! A sudden obstacle, storm, or emergency occurs; the child bravely solves the problem and saves the day. (20–30 words Egyptian Arabic)
+- PAGE 9 (Mission Accomplished): Warm sunset lighting, calm and proud resolution as the mission succeeds smoothly. (20–30 words Egyptian Arabic)
+- PAGE 10 (Hero’s Return): Triumphant celebration! The child smiling proudly, waving to cheering crowds/friends, holding a symbolic trophy, badge, or logbook. (20–30 words Egyptian Arabic)
+
+
+---
+
+MANDATORY RULES TO INCLUDE IN EVERY SINGLE IMAGE PROMPT:
+
+1. Format: Flat, horizontal (4:3) full-bleed artwork with NO borders, frames, book spines, or digital UI mockups.
+2. Face & Realism: Keep the exact child from the reference image (${ageGender}, ${name}) maintaining 100% natural, photorealistic, lifelike facial features, skin texture, and hairstyle (strictly NO cartoon, 3D, or illustration filters on the child's face/body). Expressive, natural body language interacting with the scene.
+3. Uniform: Realistic, natural-fabric career uniform tailored to the child's dream (with natural studio/outdoor lighting and real fabric folds, NOT cartoonish).
+4. Environment: Vibrant, rich 3D toy-like Pixar-style world matching the career theme, with rich colors, lively details, and soft cinematic depth-of-field blur in the background.
+5. Typography Rules:
+   - On Page 0 (Cover): Render the Arabic Title and Subtitle at the top center as custom-drawn, interlocking, volumetric 3D artistic Arabic typography (تايبوجرافي فني) with glossy/glowing outlines, creatively woven with mini 3D career-related icons, stars, and clouds.
+   - On Pages 1–10: Place the exact 20–30 word Egyptian Colloquial Arabic paragraph in natural open space at the top or bottom using a warm, friendly, rounded Arabic children's font (high-contrast white and soft pastel yellow/blue) over an extremely soft, borderless feathered defocus blur directly behind the text (NO boxes or rectangular edges). On Page 7, clearly render the Arabic labels "البداية" and "النهاية" at the maze start and end points.
+6. Brand Watermark: In the very bottom-left corner of every single page, render a tiny, subtle, clean white sans-serif watermark with a faint drop shadow reading: "kotybook 01276626592".
+
+Generate the complete 11-page script and all 11 individual prompts now.`;
 }
-يجب أن يكون عدد العناصر 11 بالضبط. راجع عدد كلمات النصوص الداخلية، وتأكد أن كل صفحة تطابق الحدث المخصص لها. `;
-  }
 
-  return `أنت مؤلف محترف لقصص مصورة شخصية ذات جودة أدبية وسينمائية عالية. اكتب قصة أصلية مترابطة يكون بطلها الشخص صاحب الصورة المرجعية.
-
-اسم صاحب القصة: ${meta.name}
-
-الحلم أو الهدف كما كتبه صاحب الطلب:
-<dream>
-${meta.dream}
-</dream>
-
-قواعد إلزامية:
-1) لا تفترض عمرًا أو وصفًا عمريًا من عندك إلا إذا كان مثبتًا في بيانات الطلب.
-2) اجعل صاحب الصورة هو الشخصية الرئيسية في جميع الأحداث، ولا تخترع ملامحه.
-3) اكتب بالعربية الفصحى المبسطة، بأسلوب دافئ وذكي ومؤثر.
-4) أنشئ 11 صفحة بالضبط: غلاف + 10 أحداث مترابطة.
-5) اجعل كل حدث مرتبطًا مباشرة بالحلم، مع بداية وعقبة وتطور وحل ونهاية مُرضية.
-6) نص كل صفحة داخلية من 20 إلى 32 كلمة عربية.
-7) اكتب scene باللغة الإنجليزية فقط، بوصف بصري محدد ومختلف لكل صفحة.
-8) لا تكتب لافتات أو حروف داخل scene إلا إذا كانت جزءًا مطلوبًا صراحة من النشاط.
-9) الغلاف text فارغ وcover=true، والصفحات الداخلية cover=false.
-10) أخرج JSON صالحًا فقط دون Markdown.
-
-المخطط:
-{
-  "title": "عنوان عربي جذاب",
-  "pages": [
-    { "scene": "Detailed English cinematic visual description", "text": "", "cover": true },
-    { "scene": "Detailed English cinematic visual description", "text": "نص عربي من 20 إلى 32 كلمة", "cover": false }
-  ]
-}
-يجب أن تحتوي pages على 11 عنصرًا بالضبط.`;
-}
 
 // ======================================================
 // استخراج JSON والتحقق من القصة
 // ======================================================
 
+const STORY_SYSTEM_INSTRUCTION = [
+  'Return one valid JSON object only. Do not add Markdown or explanations.',
+  'The JSON must contain title, subtitle, and pages.',
+  'pages must contain exactly 11 objects in order: cover first, then the ten specified story pages.',
+  'Each page object must contain scene, text, and cover.',
+  'scene must be a standalone, detailed English image-generation prompt for that exact page and must embed that page text verbatim in Arabic.',
+  'For page 0, set cover=true and text=""; put the exact Arabic main title in title and the exact Arabic subtitle in subtitle.',
+  'For pages 1-10, set cover=false and write exactly 20 to 30 whitespace-separated Arabic words in simple Egyptian colloquial Arabic.',
+  'Do not use Modern Standard Arabic in story text. Keep the story connected and personalized to the supplied child details.',
+  'Every image prompt must preserve the real child in the reference photo with a natural photorealistic face and body, realistic career clothing, a colorful 3D toy-like Pixar-style environment, horizontal landscape 4:3 full-bleed composition, no borders, and the exact kotybook 01276626592 watermark at bottom-left.',
+  'The cover prompt must render the exact title and subtitle in artistic Arabic 3D typography.',
+  'Page 3 must show exactly 3 of one career-related item and exactly 5 of another career-related item for the counting game.',
+  'Page 7 must show a clear traceable dotted maze with the exact Arabic labels البداية and النهاية.',
+  'Do not add pages, omit any required page event, or change the child details.'
+].join(' ');
+
+const STORY_JSON_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    title: { type: 'string' },
+    subtitle: { type: 'string' },
+    pages: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          scene: { type: 'string' },
+          text: { type: 'string' },
+          cover: { type: 'boolean' }
+        },
+        required: ['scene', 'text', 'cover']
+      }
+    }
+  },
+  required: ['title', 'subtitle', 'pages']
+};
+
 function extractJsonObject(value) {
   let text = String(value || '').trim();
-
-  text = text
-    .replace(/^```(?:json)?\s*/i, '')
-    .replace(/\s*```$/, '')
-    .trim();
-
+  const fence = String.fromCharCode(96).repeat(3);
+  text = text.replace(new RegExp('^' + fence + '(?:json)?\\\\s*', 'i'), '')
+    .replace(new RegExp('\\\\s*' + fence + '$'), '').trim();
   const first = text.indexOf('{');
   const last = text.lastIndexOf('}');
-
-  if (first >= 0 && last > first) {
-    text = text.slice(first, last + 1);
-  }
-
+  if (first >= 0 && last > first) text = text.slice(first, last + 1);
   return JSON.parse(text);
 }
 
 function stripArabicMarks(value) {
   return String(value || '')
-    .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, '')
-    .replace(/\s+/g, ' ')
+    .replace(/[\\u064B-\\u065F\\u0670\\u06D6-\\u06ED]/g, '')
+    .replace(/\\s+/g, ' ')
     .trim();
 }
 
 function countWords(value) {
   const text = stripArabicMarks(value);
-  return text ? text.split(/\s+/).filter(Boolean).length : 0;
+  return text ? text.split(/\\s+/).filter(Boolean).length : 0;
 }
 
 function validateStory(story, provider) {
-  if (
-    !story ||
-    !story.title ||
-    !Array.isArray(story.pages) ||
-    story.pages.length !== 11
-  ) {
+  if (!story || !story.title || !story.subtitle ||
+      !Array.isArray(story.pages) || story.pages.length !== 11) {
     throw new Error(
-      `${provider} لم يلتزم بعدد الصفحات المطلوب. المطلوب غلاف + 10 أحداث، والواصل ${story?.pages?.length || 0}.`
+      `${provider} لم يلتزم بالهيكل المطلوب: عنوان + عنوان فرعي + غلاف + 10 صفحات. عدد الصفحات: ${story && story.pages ? story.pages.length : 0}.`
     );
   }
 
-  story.title = stripArabicMarks(story.title);
-
-  if (!story.title) {
-    throw new Error(`${provider} لم يكتب عنوانًا للقصة.`);
+  story.title = String(story.title).trim();
+  story.subtitle = String(story.subtitle).trim();
+  if (!story.title || !story.subtitle) {
+    throw new Error(`${provider} لم يكتب عنوان الغلاف والعنوان الفرعي.`);
   }
 
   const validatedPages = [];
-  const isAmrDoctorStory = /عمرو/.test(String(story.title || '')) && /(الدكتور|طبيب)/.test(String(story.title || ''));
-
   for (let i = 0; i < story.pages.length; i++) {
     const pg = story.pages[i];
-    const pageNumber = i + 1;
-
     if (!pg || typeof pg.scene !== 'string' || !pg.scene.trim()) {
-      throw new Error(`وصف المشهد ناقص في الصفحة ${pageNumber}.`);
+      throw new Error(`الـ Image Generation Prompt ناقص في الصفحة ${i}.`);
     }
-
     if (typeof pg.cover !== 'boolean') {
-      throw new Error(`قيمة الغلاف غير صحيحة في الصفحة ${pageNumber}.`);
+      throw new Error(`قيمة الغلاف غير صحيحة في الصفحة ${i}.`);
     }
 
     if (i === 0) {
-      if (pg.cover !== true) {
-        throw new Error('الصفحة الأولى يجب أن تكون الغلاف cover=true.');
+      if (pg.cover !== true || String(pg.text || '').trim() !== '') {
+        throw new Error('الصفحة 0 يجب أن تكون الغلاف، ونصها يُحفظ في title وsubtitle فقط.');
       }
-
-      if (typeof pg.text !== 'string' || pg.text.trim() !== '') {
-        throw new Error('نص الغلاف يجب أن يكون فارغًا تمامًا.');
-      }
-
-      validatedPages.push({
-        scene: pg.scene.trim(),
-        text: null,
-        cover: true
-      });
-
+      validatedPages.push({ scene: pg.scene.trim(), text: '', cover: true });
       continue;
     }
 
-    if (pg.cover !== false) {
-      throw new Error(
-        `الصفحة ${pageNumber} يجب أن تكون صفحة أحداث cover=false.`
-      );
-    }
-
-    if (typeof pg.text !== 'string' || !stripArabicMarks(pg.text)) {
-      throw new Error(`نص القصة ناقص في الصفحة ${pageNumber}.`);
+    if (pg.cover !== false || typeof pg.text !== 'string' || !pg.text.trim()) {
+      throw new Error(`بيانات الصفحة الداخلية ${i} غير مكتملة.`);
     }
 
     const cleanText = stripArabicMarks(pg.text);
     const words = countWords(cleanText);
-
-    if (words < 20 || words > (isAmrDoctorStory ? 30 : 32)) {
-      throw new Error(
-        `الصفحة ${pageNumber} تحتوي على ${words} كلمة فقط. المطلوب من 20 إلى 32 كلمة.`
-      );
+    if (words < 20 || words > 30) {
+      throw new Error(`الصفحة ${i} تحتوي على ${words} كلمة. المطلوب من 20 إلى 30 كلمة بالضبط.`);
     }
-
-    if (!/[\u0600-\u06FF]/.test(cleanText)) {
-      throw new Error(
-        `الصفحة ${pageNumber} لا تحتوي على نص عربي صحيح.`
-      );
+    if (!/[\\u0600-\\u06FF]/.test(cleanText) || /[A-Za-z]/.test(cleanText)) {
+      throw new Error(`النص في الصفحة ${i} لازم يكون عامية مصرية بالعربي فقط.`);
     }
-
-    if (/[A-Za-z]/.test(cleanText)) {
-      throw new Error(
-        `الصفحة ${pageNumber} تحتوي على كلمات أو حروف إنجليزية.`
-      );
+    if (!pg.scene.includes(pg.text)) {
+      throw new Error(`الـ Image Generation Prompt في الصفحة ${i} لا يحتوي النص العربي المطابق حرفيًا.`);
     }
-
-    validatedPages.push({
-      scene: pg.scene.trim(),
-      text: cleanText,
-      cover: false
-    });
+    validatedPages.push({ scene: pg.scene.trim(), text: cleanText, cover: false });
   }
-
   story.pages = validatedPages;
-
   return story;
 }
+
 
 // ======================================================
 // طلب القصة من Gemini
@@ -680,223 +648,158 @@ function validateStory(story, provider) {
 
 async function requestGemini(meta) {
   const { apiKey, model } = getGeminiSettings();
-
-  if (!apiKey) {
-    throw new Error('GEMINI_API_KEY غير موجود في config.json');
-  }
+  if (!apiKey) throw new Error('GEMINI_API_KEY غير موجود في متغيرات GitHub Actions.');
 
   const schema = {
     type: 'OBJECT',
     properties: {
-      title: {
-        type: 'STRING'
-      },
+      title: { type: 'STRING' },
+      subtitle: { type: 'STRING' },
       pages: {
         type: 'ARRAY',
         items: {
           type: 'OBJECT',
           properties: {
-            scene: {
-              type: 'STRING'
-            },
-            text: {
-              type: 'STRING'
-            },
-            cover: {
-              type: 'BOOLEAN'
-            }
+            scene: { type: 'STRING' },
+            text: { type: 'STRING' },
+            cover: { type: 'BOOLEAN' }
           },
           required: ['scene', 'text', 'cover']
         }
       }
     },
-    required: ['title', 'pages']
+    required: ['title', 'subtitle', 'pages']
   };
 
-  const endpoint =
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
-
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
   const response = await fetch(endpoint, {
     method: 'POST',
-
-    headers: {
-      'Content-Type': 'application/json',
-      'x-goog-api-key': apiKey
-    },
-
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
     body: JSON.stringify({
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            {
-              text: storyPrompt(meta)
-            }
-          ]
-        }
-      ],
-
+      systemInstruction: { parts: [{ text: STORY_SYSTEM_INSTRUCTION }] },
+      contents: [{ role: 'user', parts: [{ text: storyPrompt(meta) }] }],
       generationConfig: {
         temperature: 0.85,
-        maxOutputTokens: 8192,
+        maxOutputTokens: 16384,
         responseMimeType: 'application/json',
         responseSchema: schema
       }
     }),
-
-    signal: AbortSignal.timeout(120000)
+    signal: AbortSignal.timeout(180000)
   });
 
   const raw = await response.text();
-
   let data;
-
-  try {
-    data = JSON.parse(raw);
-  } catch (_) {
-    throw new Error(
-      'Gemini رجّع استجابة غير مفهومة: ' + raw.slice(0, 300)
-    );
-  }
+  try { data = JSON.parse(raw); }
+  catch (_) { throw new Error('Gemini رجّع استجابة غير مفهومة: ' + raw.slice(0, 300)); }
 
   if (!response.ok) {
-    throw new Error(
-      `Gemini HTTP ${response.status}: ${data.error?.message || raw.slice(0, 300)}`
-    );
+    throw new Error(`Gemini HTTP ${response.status}: ${data.error && data.error.message ? data.error.message : raw.slice(0, 300)}`);
   }
 
-  const output = (data.candidates?.[0]?.content?.parts || [])
-    .map(part => part.text || '')
-    .join('')
-    .trim();
+  const output = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts || [])
+    .map(part => part.text || '').join('').trim();
 
   if (!output) {
-    const reason =
-      data.promptFeedback?.blockReason ||
-      data.candidates?.[0]?.finishReason ||
-      'لم يصل نص القصة';
-
+    const reason = (data.promptFeedback && data.promptFeedback.blockReason) ||
+      (data.candidates && data.candidates[0] && data.candidates[0].finishReason) || 'لم يصل نص القصة';
     throw new Error(`Gemini لم يُنتج القصة: ${reason}`);
   }
-
-  return validateStory(
-    extractJsonObject(output),
-    'Gemini'
-  );
+  return validateStory(extractJsonObject(output), 'Gemini');
 }
 
+
 // ======================================================
-// Groq (أساسي) + Gemini (احتياطي)
+// Grok (احتياطي تلقائي بعد فشل Gemini)
 // ======================================================
 
-async function requestGroq(meta) {
+async function requestGrok(meta) {
   const cfg = readConfig();
-  const apiKey = process.env.GROQ_API_KEY || cfg.GROQ_API_KEY || '';
-  const model =
-    process.env.GROQ_MODEL ||
-    cfg.GROQ_MODEL ||
-    'openai/gpt-oss-120b';
+  const apiKey = process.env.GROK_API_KEY || cfg.GROK_API_KEY || '';
+  const model = process.env.GROK_MODEL || cfg.GROK_MODEL || 'grok-4.7';
+  if (!apiKey) throw new Error('GROK_API_KEY غير موجود؛ لا يمكن تشغيل المحرك الاحتياطي.');
 
-  if (!apiKey) {
-    throw new Error('GROQ_API_KEY غير موجود في config.json أو متغيرات البيئة.');
-  }
-
-  const response = await fetch(
-    'https://api.groq.com/openai/v1/chat/completions',
-    {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          {
-            role: 'system',
-            content: 'أنت مؤلف محترف لقصص مصورة شخصية. أعد JSON صالحًا فقط دون Markdown أو مقدمات. التزم بكل قواعد الطلب.'
-          },
-          {
-            role: 'user',
-            content: storyPrompt(meta)
-          }
-        ],
-        temperature: 0.85,
-        max_completion_tokens: 8192,
-        response_format: { type: 'json_object' }
-      }),
-      signal: AbortSignal.timeout(120000)
-    }
-  );
+  const response = await fetch('https://api.x.ai/v1/responses', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model,
+      instructions: STORY_SYSTEM_INSTRUCTION,
+      input: storyPrompt(meta),
+      temperature: 0.85,
+      max_output_tokens: 16384,
+      text: {
+        format: {
+          type: 'json_schema',
+          name: 'kotybook_storybook',
+          strict: true,
+          schema: STORY_JSON_SCHEMA
+        }
+      }
+    }),
+    signal: AbortSignal.timeout(180000)
+  });
 
   const raw = await response.text();
   let data;
-
-  try {
-    data = JSON.parse(raw);
-  } catch (_) {
-    throw new Error('Groq رجّع استجابة غير مفهومة: ' + raw.slice(0, 300));
-  }
+  try { data = JSON.parse(raw); }
+  catch (_) { throw new Error('Grok رجّع استجابة غير مفهومة: ' + raw.slice(0, 300)); }
 
   if (!response.ok) {
-    throw new Error(
-      `Groq HTTP ${response.status}: ${data.error?.message || raw.slice(0, 300)}`
-    );
+    throw new Error(`Grok HTTP ${response.status}: ${data.error && data.error.message ? data.error.message : raw.slice(0, 300)}`);
   }
 
-  const output = data.choices?.[0]?.message?.content;
-  if (!output) {
-    throw new Error('Groq لم يُرجع نص القصة.');
-  }
+  const output = data.output_text || (data.output || [])
+    .filter(item => item.type === 'message')
+    .flatMap(item => item.content || [])
+    .filter(part => part.type === 'output_text' || typeof part.text === 'string')
+    .map(part => part.text || '')
+    .join('').trim();
 
-  return validateStory(extractJsonObject(output), 'Groq');
+  if (!output) throw new Error('Grok لم يُرجع نص القصة في استجابة Responses API.');
+  return validateStory(extractJsonObject(output), 'Grok');
 }
+
 async function generateWithRetries(providerName, requestFn, meta, attempts = 2) {
   let lastError;
-
   for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
       console.log(`بدء تأليف القصة باستخدام ${providerName} - محاولة ${attempt}/${attempts}`);
       return await requestFn(meta);
     } catch (error) {
       lastError = error;
-      console.log(`${providerName} فشل في تأليف القصة (محاولة ${attempt}/${attempts}): ${error.message}`);
+      console.error(`${providerName} فشل في تأليف القصة (محاولة ${attempt}/${attempts}): ${error.message}`);
       if (attempt < attempts) await sleep(3000);
     }
   }
-
   throw lastError || new Error(`${providerName} فشل لسبب غير معروف.`);
 }
 
 async function generatePersonalizedStory(meta) {
   let story;
-  let primaryError;
-
-  // Groq هو المحرك الأساسي.
+  let geminiError;
   try {
-    story = await generateWithRetries('Groq', requestGroq, meta, 2);
-    console.log(`تم تأليف القصة بواسطة Groq: "${story.title}" (غلاف + 10 صفحات).`);
+    story = await generateWithRetries('Gemini الأساسي', requestGemini, meta, 2);
+    console.log(`تم تأليف القصة بواسطة Gemini: "${story.title}" (غلاف + 10 صفحات).`);
   } catch (error) {
-    primaryError = error;
-    console.error(`تعذر استخدام Groq؛ سيتم التحويل تلقائيًا إلى Gemini. السبب: ${error.message}`);
-
-    // Gemini هو المحرك الاحتياطي.
+    geminiError = error;
+    console.error(`فشل Gemini؛ التحويل التلقائي إلى Grok. السبب: ${error.message}`);
     try {
-      story = await generateWithRetries('Gemini', requestGemini, meta, 2);
-      console.log(`تم تأليف القصة بواسطة Gemini الاحتياطي: "${story.title}" (غلاف + 9 صفحات).`);
+      story = await generateWithRetries('Grok الاحتياطي', requestGrok, meta, 2);
+      console.log(`تم تأليف القصة بواسطة Grok الاحتياطي: "${story.title}" (غلاف + 10 صفحات).`);
     } catch (fallbackError) {
-      throw new Error(
-        `فشل Groq الأساسي: ${primaryError.message} | وفشل Gemini الاحتياطي: ${fallbackError.message}`
-      );
+      throw new Error(`فشل Gemini الأساسي: ${geminiError.message} | وفشل Grok الاحتياطي: ${fallbackError.message}`);
     }
   }
-
   for (let i = 1; i < story.pages.length; i++) {
-    console.log(`  الصفحة ${i + 1}: ${countWords(story.pages[i].text)} كلمة`);
+    console.log(`  الصفحة ${i}: ${countWords(story.pages[i].text)} كلمة`);
   }
-
   return story;
 }
+
 
 // ======================================================
 // التوليد داخل Flow
@@ -945,6 +848,7 @@ async function generateStoryFlow({
 
     pages = story.pages;
     meta.title = story.title;
+    meta.subtitle = story.subtitle;
   }
 
   if (!Array.isArray(pages) || pages.length !== 11) {
@@ -1187,7 +1091,11 @@ async function generateStoryFlow({
         pages[i],
         meta.name,
         meta.title,
-        meta.dream
+        meta.dream,
+        meta.subtitle,
+        meta.age,
+        meta.gender,
+        i
       );
 
       let done = false;
