@@ -624,15 +624,42 @@ function validateStory(story, provider) {
       throw new Error(`بيانات الصفحة الداخلية ${i} غير مكتملة.`);
     }
 
-    const cleanText = stripArabicMarks(pg.text);
-    const words = countWords(cleanText);
+    // Gemini may occasionally truncate the dedicated text field while still
+    // embedding the complete Arabic paragraph verbatim inside the image prompt.
+    // Recover only a quoted Arabic paragraph that independently passes every
+    // existing length/language rule; otherwise fail closed as before.
+    let sourceText = pg.text;
+    let cleanText = stripArabicMarks(sourceText);
+    let words = countWords(cleanText);
+
+    if (words < 20 || words > 30) {
+      const quotedCandidates = [
+        ...pg.scene.matchAll(/["“]([^"”]{20,1200})["”]/g)
+      ].map(match => stripArabicMarks(match[1]));
+
+      const recovered = quotedCandidates.find(candidate => {
+        const candidateWords = countWords(candidate);
+        return candidateWords >= 20 &&
+          candidateWords <= 30 &&
+          /[\\u0600-\\u06FF]/.test(candidate) &&
+          !/[A-Za-z]/.test(candidate);
+      });
+
+      if (recovered) {
+        sourceText = recovered;
+        cleanText = recovered;
+        words = countWords(cleanText);
+        console.log(`  الصفحة ${i}: استعادة النص العربي الكامل من وصف الصورة (${words} كلمة).`);
+      }
+    }
+
     if (words < 20 || words > 30) {
       throw new Error(`الصفحة ${i} تحتوي على ${words} كلمة. المطلوب من 20 إلى 30 كلمة بالضبط.`);
     }
     if (!/[\\u0600-\\u06FF]/.test(cleanText) || /[A-Za-z]/.test(cleanText)) {
       throw new Error(`النص في الصفحة ${i} لازم يكون عامية مصرية بالعربي فقط.`);
     }
-    if (!pg.scene.includes(pg.text)) {
+    if (!pg.scene.includes(sourceText)) {
       throw new Error(`الـ Image Generation Prompt في الصفحة ${i} لا يحتوي النص العربي المطابق حرفيًا.`);
     }
     validatedPages.push({ scene: pg.scene.trim(), text: cleanText, cover: false });
