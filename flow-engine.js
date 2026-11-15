@@ -635,19 +635,20 @@ function validateStory(story, provider) {
     if (words < 20 || words > 30) {
       const quotedCandidates = [
         ...pg.scene.matchAll(/["“]([^"”]{20,1200})["”]/g)
-      ].map(match => stripArabicMarks(match[1]));
+      ].map(match => match[1].trim());
 
       const recovered = quotedCandidates.find(candidate => {
-        const candidateWords = countWords(candidate);
+        const normalized = stripArabicMarks(candidate);
+        const candidateWords = countWords(normalized);
         return candidateWords >= 20 &&
           candidateWords <= 30 &&
-          /\p{Script=Arabic}/u.test(candidate) &&
-          !/[A-Za-z]/.test(candidate);
+          /\p{Script=Arabic}/u.test(normalized) &&
+          !/[A-Za-z]/.test(normalized);
       });
 
       if (recovered) {
         sourceText = recovered;
-        cleanText = recovered;
+        cleanText = stripArabicMarks(recovered);
         words = countWords(cleanText);
         console.log(`  الصفحة ${i}: استعادة النص العربي الكامل من وصف الصورة (${words} كلمة).`);
       }
