@@ -568,8 +568,8 @@ const STORY_JSON_SCHEMA = {
 function extractJsonObject(value) {
   let text = String(value || '').trim();
   const fence = String.fromCharCode(96).repeat(3);
-  text = text.replace(new RegExp('^' + fence + '(?:json)?\\\\s*', 'i'), '')
-    .replace(new RegExp('\\\\s*' + fence + '$'), '').trim();
+  text = text.replace(/^\x60{3}(?:json)?\s*/i, '')
+    .replace(/\s*\x60{3}$/, '').trim();
   const first = text.indexOf('{');
   const last = text.lastIndexOf('}');
   if (first >= 0 && last > first) text = text.slice(first, last + 1);
@@ -579,13 +579,13 @@ function extractJsonObject(value) {
 function stripArabicMarks(value) {
   return String(value || '')
     .replace(/\p{M}/gu, '')
-    .replace(/\\s+/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim();
 }
 
 function countWords(value) {
   const text = stripArabicMarks(value);
-  return text ? text.split(/\\s+/).filter(Boolean).length : 0;
+  return text ? text.split(/\s+/).filter(Boolean).length : 0;
 }
 
 function validateStory(story, provider) {
