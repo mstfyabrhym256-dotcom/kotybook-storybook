@@ -1,4 +1,4 @@
- // محرك Flow: يفتح مشروع جديد، يرفع صورة الطفل، يولّد صورة لكل صفحة (3:4)، وينزّلها
+ // محرك Flow: يفتح مشروع جديد، يرفع صورة الطفل، يولّد صورة لكل صفحة (4:3 بالعرض)، وينزّلها
 
 const { chromium } = require('playwright');
 const fs = require('fs');
@@ -98,7 +98,7 @@ Background Environment:
 Replace the background with a clean, well-organized, cute 3D stylized toy-like room representing the world of ${childDream}, using soft ${themeColors} tones. Keep the background tidy and uncluttered with only 1 or 2 cute thematic elements in logical places, creating a smooth, natural blend between the real-life photographed child and the colorful storybook background.
 
 Arabic Cover Typography:
-Design this as a flat, vertical (3:4) full-bleed children's book cover with no borders or frames. At the top center, render large, glossy, 3D playful Arabic bubble text with glowing outlines that reads: "${childName} ${String(title || 'رحلة نحو الحلم')}". Directly below it, in smaller matching Arabic bubble text, render: "حكاية ${childName}". Add a tiny cute thematic icon resting on the corner of the title text.
+Design this as a flat, horizontal (4:3) full-bleed children's book cover with no borders or frames. At the top center, render large, glossy, 3D playful Arabic bubble text with glowing outlines that reads: "${childName} ${String(title || 'رحلة نحو الحلم')}". Directly below it, in smaller matching Arabic bubble text, render: "حكاية ${childName}". Add a tiny cute thematic icon resting on the corner of the title text.
 
 Brand Watermark:
 In the very bottom-left corner, render a tiny, subtle, clean white sans-serif watermark text with a faint drop shadow that reads: "kotybook 01276626592". Keep it small and discreet so it blends naturally into the bottom edge.`;
@@ -109,7 +109,7 @@ In the very bottom-left corner, render a tiny, subtle, clean white sans-serif wa
   const storyText = String(pg.text || '').trim();
 
   return `Visual Style & Face Preservation:
-A flat, vertical (3:4) full-bleed children's storybook interior page. Keep the exact real-life child from the reference image, maintaining their 100% natural, photorealistic, lifelike facial features, skin texture, and original hairstyle completely preserved with 100% real-life photography (absolutely NO cartoon, 3D, or illustration filters on the person).
+A flat, horizontal (4:3) full-bleed children's storybook interior page. Keep the exact real-life child from the reference image, maintaining their 100% natural, photorealistic, lifelike facial features, skin texture, and original hairstyle completely preserved with 100% real-life photography (absolutely NO cartoon, 3D, or illustration filters on the person).
 
 Subject, Outfit & Action:
 The child is wearing a realistic, natural-fabric child's outfit suitable for ${childDream} (with real fabric folds and natural studio lighting, NOT cartoonish).
@@ -217,7 +217,7 @@ async function openFlowSettings(page) {
             .map(el => (el.innerText || '').trim())
             .filter(t => t && t.length < 100);
 
-          return text.some(t => t === '3:4') && text.some(t => t === 'x1');
+          return text.some(t => t === '4:3') && text.some(t => t === 'x1');
         }, null, { timeout: 10000, polling: 300 })
           .then(() => true)
           .catch(() => false);
@@ -1085,13 +1085,13 @@ async function generateStoryFlow({
 
     console.log('1) مشروع جديد:', page.url());
 
-    // 2) الأبعاد 3:4 وصورة واحدة
+    // 2) الأبعاد 4:3 بالعرض وصورة واحدة
 
     await openFlowSettings(page);
     await sleep(700);
 
     const ratioOption = page
-      .getByText('3:4', { exact: true })
+      .getByText('4:3', { exact: true })
       .first();
 
     await ratioOption.waitFor({
@@ -1127,7 +1127,7 @@ async function generateStoryFlow({
     await page.keyboard.press('Escape');
     await sleep(800);
 
-    console.log('2) الإعدادات: تم اختيار 3:4 و x1');
+    console.log('2) الإعدادات: تم اختيار 4:3 و x1');
 
     // 3) رفع صورة الطفل واختيارها كمرجع
 
