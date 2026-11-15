@@ -106,7 +106,8 @@ async function main() {
   required('APPS_SCRIPT_URL', APPS_SCRIPT_URL);
   required('API_SECRET', API_SECRET);
   required('ORDER_CODE', CODE);
-  required('GROQ_API_KEY', process.env.GROQ_API_KEY);
+  required('GEMINI_API_KEY', process.env.GEMINI_API_KEY);
+  required('GROK_API_KEY', process.env.GROK_API_KEY);
   required('AUTH_STATE_JSON', process.env.AUTH_STATE_JSON);
 
   fs.mkdirSync(ROOT, { recursive: true });
