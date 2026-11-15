@@ -107,7 +107,7 @@ async function main() {
   required('API_SECRET', API_SECRET);
   required('ORDER_CODE', CODE);
   required('GEMINI_API_KEY', process.env.GEMINI_API_KEY);
-  required('GROK_API_KEY', process.env.GROK_API_KEY);
+  // Grok is an optional fallback; Gemini must run even when GROK_API_KEY is absent.
   required('AUTH_STATE_JSON', process.env.AUTH_STATE_JSON);
 
   fs.mkdirSync(ROOT, { recursive: true });
