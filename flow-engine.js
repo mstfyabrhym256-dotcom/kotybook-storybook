@@ -108,7 +108,7 @@ function buildPrompt(pg, name, title, dream, subtitle, age, gender, pageIndex) {
       textRule,
       `At the top center, render the exact Arabic main title "${String(title || '').trim()}" and subtitle "${String(subtitle || '').trim()}" exactly as supplied. Use elegant, clearly legible, correctly connected Arabic typography with proper right-to-left direction. Preserve every letter and word exactly; do not add English text or decorative pseudo-lettering. Integrate the title beautifully with subtle glossy 3D depth, career-related icons, stars and clouds without obscuring the child's face.`,
       brandRule
-    ].filter(Boolean).join('\\n\\n');
+    ].filter(Boolean).join('\n\n');
   }
 
   return [
@@ -124,7 +124,7 @@ function buildPrompt(pg, name, title, dream, subtitle, age, gender, pageIndex) {
     pageIndex === 3 ? 'COUNTING GAME: show exactly 3 identical items of one career-related type and exactly 5 identical items of a different career-related type. Make every item individually visible and countable, with dotted chalk-style guide lines on the ground.' : '',
     pageIndex === 7 ? 'MAZE GAME: show a hand-drawn colorful dotted-line labyrinth on a clipboard or map, with the exact Arabic labels "البداية" and "النهاية" clearly placed at its start and finish; the reader must be able to trace the path around an obstacle.' : '',
     brandRule
-  ].filter(Boolean).join('\\n\\n');
+  ].filter(Boolean).join('\n\n');
 }
 
 
