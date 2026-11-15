@@ -977,7 +977,7 @@ async function generateStoryFlow({
     }
   });
 
-  const page = await context.newPage();
+  let page = await context.newPage();
 
   const dbg = (n) => page.screenshot({
     path: path.join(outDir, `dbg-${n}.png`),
@@ -1017,6 +1017,30 @@ async function generateStoryFlow({
       await dbg('flow-home-not-ready');
     };
 
+    // صفحة flow.google.com قد تكون صفحة تعريفية (/about)، لذلك ندخل مساحة العمل من زر CTA الرسمي.
+    if (/\\/about(?:[?#]|$)/i.test(page.url())) {
+      const cta = page.getByRole('button', { name: /^Create with Google Flow$/i }).first();
+      await cta.waitFor({ state: 'visible', timeout: 20000 });
+      await cta.scrollIntoViewIfNeeded();
+      const pagesBefore = new Set(context.pages());
+      await cta.click({ timeout: 30000 });
+      console.log('  تم الضغط على Create with Google Flow؛ انتظار مساحة العمل...');
+
+      let appPage = null;
+      for (let i = 0; i < 35 && !appPage; i++) {
+        await sleep(1000);
+        const opened = context.pages().filter(p => !pagesBefore.has(p));
+        if (opened.length) {
+          appPage = opened[opened.length - 1];
+          break;
+        }
+        if (!/\\/about(?:[?#]|$)/i.test(page.url())) appPage = page;
+      }
+      if (appPage) page = appPage;
+      await page.waitForLoadState('domcontentloaded', { timeout: 30000 }).catch(() => {});
+      await sleep(5000);
+    }
+
     const candidates = [
       page.locator('button.new-project-button:visible').first(),
       page.getByRole('button', { name: /new project|create project|مشروع جديد|إنشاء مشروع/i }).first(),
@@ -1027,29 +1051,30 @@ async function generateStoryFlow({
     let newProjectButton = null;
     for (const candidate of candidates) {
       try {
-        await candidate.waitFor({ state: 'visible', timeout: 7000 });
+        await candidate.waitFor({ state: 'visible', timeout: 10000 });
         newProjectButton = candidate;
         break;
       } catch (_) {}
     }
 
-    if (!newProjectButton) {
+    if (!newProjectButton && !(await page.locator(S.textbox).first().isVisible().catch(() => false))) {
       await homeDiagnostics();
       const bodyText = await page.locator('body').innerText().catch(() => '');
       if (/accounts\\.google\\.com|sign in|تسجيل الدخول/i.test(page.url() + ' ' + bodyText)) {
         throw new Error('FLOW_LOGIN_REQUIRED: جلسة Google Flow منتهية أو تطلب تسجيل الدخول. راجع flow-home-diagnostics.json.');
       }
-      throw new Error('FLOW_HOME_NOT_READY: لم يظهر زر إنشاء مشروع في Google Flow. تم حفظ تشخيص الصفحة والصورة.');
+      throw new Error('FLOW_HOME_NOT_READY: لم نصل إلى مساحة إنشاء المشاريع بعد الضغط على زر الدخول الرسمي. تم حفظ تشخيص الصفحة والصورة.');
     }
 
-    await newProjectButton.scrollIntoViewIfNeeded();
-    await sleep(1000);
-    await newProjectButton.click({ timeout: 30000 });
-
-    await page.waitForURL(/\/project\//, {
-      timeout: 60000,
-      waitUntil: 'domcontentloaded'
-    });
+    if (newProjectButton) {
+      await newProjectButton.scrollIntoViewIfNeeded();
+      await sleep(1000);
+      await newProjectButton.click({ timeout: 30000 });
+      await page.waitForURL(/\\/project\\//, {
+        timeout: 60000,
+        waitUntil: 'domcontentloaded'
+      });
+    }
 
     await page.locator(S.textbox).first().waitFor({
       state: 'visible',
