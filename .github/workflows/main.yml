@@ -47,5 +47,7 @@ jobs:
           name: flow-debug-screenshot
           path: |
             work/**/dbg-settings-open-failed.png
+            work/**/flow-home-diagnostics.json
+            work/**/dbg-flow-home-not-ready.png
           if-no-files-found: warn
           retention-days: 3
