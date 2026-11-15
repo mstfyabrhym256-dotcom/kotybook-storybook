@@ -578,7 +578,7 @@ function extractJsonObject(value) {
 
 function stripArabicMarks(value) {
   return String(value || '')
-    .replace(/\\p{M}/gu, '')
+    .replace(/\p{M}/gu, '')
     .replace(/\\s+/g, ' ')
     .trim();
 }
@@ -641,7 +641,7 @@ function validateStory(story, provider) {
         const candidateWords = countWords(candidate);
         return candidateWords >= 20 &&
           candidateWords <= 30 &&
-          /\\p{Script=Arabic}/u.test(candidate) &&
+          /\p{Script=Arabic}/u.test(candidate) &&
           !/[A-Za-z]/.test(candidate);
       });
 
@@ -656,7 +656,7 @@ function validateStory(story, provider) {
     if (words < 20 || words > 30) {
       throw new Error(`الصفحة ${i} تحتوي على ${words} كلمة. المطلوب من 20 إلى 30 كلمة بالضبط.`);
     }
-    if (!/\\p{Script=Arabic}/u.test(cleanText) || /[A-Za-z]/.test(cleanText)) {
+    if (!/\p{Script=Arabic}/u.test(cleanText) || /[A-Za-z]/.test(cleanText)) {
       throw new Error(`النص في الصفحة ${i} لازم يكون عامية مصرية بالعربي فقط.`);
     }
     if (!pg.scene.includes(sourceText)) {
