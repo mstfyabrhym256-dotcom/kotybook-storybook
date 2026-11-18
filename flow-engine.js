@@ -398,7 +398,6 @@ async function download(context, src, fileBase) {
   });
 
   if (!r.ok()) {    throw new Error('تحميل الصورة فشل: ' + r.status());  }
-
   const buf = await r.body();
   const info = await sharp(buf).metadata();
 
@@ -797,8 +796,7 @@ async function requestGrok(meta) {
 // ======================================================
 
 async function requestGroq(meta) {  const cfg = readConfig();
-  const apiKey = process.env.GROQ_API_KEY || cfg.GROQ_API_KEY || '';
-  const model = process.env.GROQ_MODEL || cfg.GROQ_MODEL || 'openai/gpt-oss-120b';
+  const apiKey = process.env.GROQ_API_KEY || cfg.GROQ_API_KEY || '';  const model = process.env.GROQ_MODEL || cfg.GROQ_MODEL || 'openai/gpt-oss-120b';
   if (!apiKey) throw new Error('GROQ_API_KEY غير موجود في متغيرات GitHub Actions.');
 
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -852,7 +850,8 @@ async function requestGroq(meta) {  const cfg = readConfig();
 async function generateWithRetries(providerName, requestFn, meta, attempts = 2) {
   let lastError;
   for (let attempt = 1; attempt <= attempts; attempt++) {
-    try {\n      console.log(`بدء تأليف القصة باستخدام ${providerName} - محاولة ${attempt}/${attempts}`);
+    try {
+      console.log(`بدء تأليف القصة باستخدام ${providerName} - محاولة ${attempt}/${attempts}`);
       return await requestFn(meta);
     } catch (error) {
       lastError = error;
@@ -1197,7 +1196,6 @@ async function generateStoryFlow({
 
           const box = page.locator(S.textbox).first();
           await box.click();
-
           await page.keyboard.press('Control+A');
           await page.keyboard.press('Delete');
           await page.keyboard.insertText(prompt);
