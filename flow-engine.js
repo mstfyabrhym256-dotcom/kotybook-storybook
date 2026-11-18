@@ -397,8 +397,7 @@ async function download(context, src, fileBase) {
     headers: { referer: HOME }
   });
 
-  if (!r.ok()) {
-    throw new Error('تحميل الصورة فشل: ' + r.status());
+  if (!r.ok()) {    throw new Error('تحميل الصورة فشل: ' + r.status());
   }
 
   const buf = await r.body();
@@ -794,11 +793,68 @@ async function requestGrok(meta) {
   return validateStory(extractJsonObject(output), 'Grok');
 }
 
+// ======================================================
+// Groq (احتياطي مجاني عند تعذّر Gemini)
+// ======================================================
+
+async function requestGroq(meta) {
+  const cfg = readConfig();
+  const apiKey = process.env.GROQ_API_KEY || cfg.GROQ_API_KEY || '';
+  const model = process.env.GROQ_MODEL || cfg.GROQ_MODEL || 'openai/gpt-oss-120b';
+  if (!apiKey) throw new Error('GROQ_API_KEY غير موجود في متغيرات GitHub Actions.');
+
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: 'system', content: STORY_SYSTEM_INSTRUCTION },
+        { role: 'user', content: storyPrompt(meta) }
+      ],
+      temperature: 0.85,
+      max_completion_tokens: 16384,
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'kotybook_storybook',
+          strict: true,
+          schema: STORY_JSON_SCHEMA
+        }
+      }
+    }),
+    signal: AbortSignal.timeout(180000)
+  });
+
+  const raw = await response.text();
+  let data;
+  try { data = JSON.parse(raw); }
+  catch (_) { throw new Error('Groq رجّع استجابة غير مفهومة: ' + raw.slice(0, 300)); }
+
+  if (!response.ok) {
+    throw new Error(`Groq HTTP ${response.status}: ${data.error && data.error.message ? data.error.message : raw.slice(0, 300)}`);
+  }
+
+  const output = data.choices && data.choices[0] &&
+    data.choices[0].message && data.choices[0].message.content
+    ? data.choices[0].message.content.trim()
+    : '';
+
+  if (!output) {
+    const reason = data.choices && data.choices[0] && data.choices[0].finish_reason;
+    throw new Error(`Groq لم يُرجع نص القصة في Chat Completions API. السبب: ${reason || 'استجابة فارغة'}`);
+  }
+
+  return validateStory(extractJsonObject(output), 'Groq');
+}
+
 async function generateWithRetries(providerName, requestFn, meta, attempts = 2) {
   let lastError;
   for (let attempt = 1; attempt <= attempts; attempt++) {
-    try {
-      console.log(`بدء تأليف القصة باستخدام ${providerName} - محاولة ${attempt}/${attempts}`);
+    try {      console.log(`بدء تأليف القصة باستخدام ${providerName} - محاولة ${attempt}/${attempts}`);
       return await requestFn(meta);
     } catch (error) {
       lastError = error;
@@ -817,12 +873,12 @@ async function generatePersonalizedStory(meta) {
     console.log(`تم تأليف القصة بواسطة Gemini: "${story.title}" (غلاف + 10 صفحات).`);
   } catch (error) {
     geminiError = error;
-    console.error(`فشل Gemini؛ التحويل التلقائي إلى Grok. السبب: ${error.message}`);
+    console.error(`فشل Gemini؛ التحويل التلقائي إلى Groq. السبب: ${error.message}`);
     try {
-      story = await generateWithRetries('Grok الاحتياطي', requestGrok, meta, 2);
-      console.log(`تم تأليف القصة بواسطة Grok الاحتياطي: "${story.title}" (غلاف + 10 صفحات).`);
+      story = await generateWithRetries('Groq الاحتياطي', requestGroq, meta, 2);
+      console.log(`تم تأليف القصة بواسطة Groq الاحتياطي: "${story.title}" (غلاف + 10 صفحات).`);
     } catch (fallbackError) {
-      throw new Error(`فشل Gemini الأساسي: ${geminiError.message} | وفشل Grok الاحتياطي: ${fallbackError.message}`);
+      throw new Error(`فشل Gemini الأساسي: ${geminiError.message} | وفشل Groq الاحتياطي: ${fallbackError.message}`);
     }
   }
   for (let i = 1; i < story.pages.length; i++) {
@@ -1197,7 +1253,6 @@ async function generateStoryFlow({
           console.log(
             `  فشلت: ${e.message.split('\n')[0]}`
           );
-
           await dbg(`page${i + 1}-try${attempt}`);
 
           if (attempt === 2) {
