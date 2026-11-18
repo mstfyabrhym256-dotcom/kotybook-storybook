@@ -397,8 +397,7 @@ async function download(context, src, fileBase) {
     headers: { referer: HOME }
   });
 
-  if (!r.ok()) {    throw new Error('تحميل الصورة فشل: ' + r.status());
-  }
+  if (!r.ok()) {    throw new Error('تحميل الصورة فشل: ' + r.status());  }
 
   const buf = await r.body();
   const info = await sharp(buf).metadata();
@@ -797,8 +796,7 @@ async function requestGrok(meta) {
 // Groq (احتياطي مجاني عند تعذّر Gemini)
 // ======================================================
 
-async function requestGroq(meta) {
-  const cfg = readConfig();
+async function requestGroq(meta) {  const cfg = readConfig();
   const apiKey = process.env.GROQ_API_KEY || cfg.GROQ_API_KEY || '';
   const model = process.env.GROQ_MODEL || cfg.GROQ_MODEL || 'openai/gpt-oss-120b';
   if (!apiKey) throw new Error('GROQ_API_KEY غير موجود في متغيرات GitHub Actions.');
@@ -854,7 +852,7 @@ async function requestGroq(meta) {
 async function generateWithRetries(providerName, requestFn, meta, attempts = 2) {
   let lastError;
   for (let attempt = 1; attempt <= attempts; attempt++) {
-    try {      console.log(`بدء تأليف القصة باستخدام ${providerName} - محاولة ${attempt}/${attempts}`);
+    try {\n      console.log(`بدء تأليف القصة باستخدام ${providerName} - محاولة ${attempt}/${attempts}`);
       return await requestFn(meta);
     } catch (error) {
       lastError = error;
@@ -1198,7 +1196,6 @@ async function generateStoryFlow({
           }
 
           const box = page.locator(S.textbox).first();
-
           await box.click();
 
           await page.keyboard.press('Control+A');
